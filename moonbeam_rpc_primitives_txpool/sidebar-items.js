@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Transaction",""]],"struct":[["TxPoolResponse",""],["TxPoolResponseLegacy",""]],"trait":[["TxPoolRuntimeApi",""]],"type":[["LegacyTransaction",""]]});
