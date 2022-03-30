@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
 use super::*;
@@ -49,12 +49,12 @@ construct_runtime!(
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
+		AllychainSystem: cumulus_pallet_allychain_system::{Pallet, Call, Storage, Inherent, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 	}
 );
 
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
+// FRom https://github.com/PureStake/axtend/pull/518. Merge to common once is merged
 #[derive(
 	Eq,
 	PartialEq,
@@ -132,17 +132,18 @@ impl frame_system::Config for Runtime {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type OnSetCode = cumulus_pallet_allychain_system::AllychainSetCode<Self>;
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
 parameter_types! {
-	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
+	pub AllychainId: cumulus_primitives_core::ParaId = 100.into();
 }
 
-impl cumulus_pallet_parachain_system::Config for Runtime {
-	type SelfParaId = ParachainId;
+impl cumulus_pallet_allychain_system::Config for Runtime {
+	type SelfParaId = AllychainId;
 	type Event = Event;
-	type OnValidationData = ();
+	type OnSystemEvent = ();
 	type OutboundXcmpMessageSource = ();
 	type XcmpMessageHandler = ();
 	type ReservedXcmpWeight = ();
@@ -216,6 +217,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = ();
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {

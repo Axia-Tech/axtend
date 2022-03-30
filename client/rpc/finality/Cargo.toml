@@ -1,23 +1,23 @@
 [package]
-name = "moonbeam-finality-rpc"
-authors = [ "PureStake" ]
-description = "An experimental RPC to check for block and transaction finality in the moonbeam parachain"
+name = "axtend-finality-rpc"
+authors = ["PureStake"]
+description = "An experimental RPC to check for block and transaction finality in the axtend allychain"
 edition = "2018"
-homepage = "https://moonbeam.network"
+homepage = "https://axtend.network"
 license = "GPL-3.0-only"
-repository = "https://github.com/PureStake/moonbeam/"
+repository = "https://github.com/PureStake/axtend/"
 version = "0.1.0"
 
 [dependencies]
-futures = { version = "0.3", features = [ "compat" ] }
+futures = { version = "0.3", features = ["compat"] }
 jsonrpc-core = "18.0.0"
 jsonrpc-derive = "18.0.0"
 parity-scale-codec = "2.2"
-tokio = { version = "1.12.0", features = [ "sync", "time" ] }
+tokio = { version = "1.12.0", features = ["sync", "time"] }
 
-fc-db = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.15-1" }
-fc-rpc = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.15-1" }
-sp-api = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
-sp-blockchain = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
+fc-db = { git = "https://github.com/axia-tech/frontier", branch = "frontier" }
+fc-rpc = { git = "https://github.com/axia-tech/frontier", branch = "frontier" }
+sp-api = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }
+sp-blockchain = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }
+sp-core = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }
+sp-runtime = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }

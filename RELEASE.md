@@ -1,4 +1,4 @@
-## Moonbeam Release Process
+## Axtend Release Process
 
 ### Branches
 
@@ -6,7 +6,7 @@
 
 ### Notes
 
-- The `master` branch must refer to frontier `paritytech/frontier/master` or
+- The `master` branch must refer to frontier `axiatech/frontier/master` or
   `purestake/frontier/vX.X-hotfixes`
 
 ### Pre-Release Checklist
@@ -16,7 +16,7 @@
 - [ ] Documentation/Website/Tutorials have been updated
 - [ ] Runtime version has been updated
 - [ ] Tests are passing on StageNet
-- [ ] Ensure Type changes are reflected into PolkadotJs
+- [ ] Ensure Type changes are reflected into AxiaJs
 
 ### Release Workflow
 

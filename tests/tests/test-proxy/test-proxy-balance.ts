@@ -1,6 +1,6 @@
 import { expect } from "chai";
-import { describeDevMoonbeam } from "../../util/setup-dev-tests";
-import Keyring from "@polkadot/keyring";
+import { describeDevAxtend } from "../../util/setup-dev-tests";
+import Keyring from "@axia/keyring";
 import {
   ALITH_PRIVATE_KEY,
   BALTATHAR_PRIVATE_KEY,
@@ -20,7 +20,7 @@ const alith = keyring.addFromUri(ALITH_PRIVATE_KEY, null, "ethereum");
 const baltathar = keyring.addFromUri(BALTATHAR_PRIVATE_KEY, null, "ethereum");
 const charleth = keyring.addFromUri(CHARLETH_PRIVATE_KEY, null, "ethereum");
 
-describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => {
+describeDevAxtend("Proxy: Balances - should accept known proxy", (context) => {
   it("should accept known proxy", async () => {
     await expectBalanceDifference(
       context,
@@ -30,8 +30,8 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
         const events = await substrateTransaction(
           context,
           alith,
-          // @ts-ignore //TODO: this is because of https://github.com/polkadot-js/api/issues/4264
-          context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Balances", 0)
+          // @ts-ignore //TODO: this is because of https://github.com/axia-js/api/issues/4264
+          context.axiaApi.tx.proxy.addProxy(baltathar.address, "Balances", 0)
         );
         expect(events[2].method).to.be.eq("ProxyAdded");
         expect(events[2].data[2].toString()).to.be.eq("Balances"); //ProxyType
@@ -40,10 +40,10 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
         const events2 = await substrateTransaction(
           context,
           baltathar,
-          context.polkadotApi.tx.proxy.proxy(
+          context.axiaApi.tx.proxy.proxy(
             alith.address,
             null,
-            context.polkadotApi.tx.balances.transfer(charleth.address, 100)
+            context.axiaApi.tx.balances.transfer(charleth.address, 100)
           )
         );
 
@@ -56,13 +56,13 @@ describeDevMoonbeam("Proxy: Balances - should accept known proxy", (context) => 
   });
 });
 
-describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (context) => {
+describeDevAxtend("Proxy: Balances - shouldn't accept other proxy types", (context) => {
   before("first add proxy", async () => {
     await substrateTransaction(
       context,
       alith,
       // @ts-ignore
-      context.polkadotApi.tx.proxy.addProxy(baltathar.address, "Balances", 0)
+      context.axiaApi.tx.proxy.addProxy(baltathar.address, "Balances", 0)
     );
   });
   it("shouldn't accept other proxy types", async () => {
@@ -74,10 +74,10 @@ describeDevMoonbeam("Proxy: Balances - shouldn't accept other proxy types", (con
         const events2 = await substrateTransaction(
           context,
           baltathar,
-          context.polkadotApi.tx.proxy.proxy(
+          context.axiaApi.tx.proxy.proxy(
             alith.address,
             null,
-            context.polkadotApi.tx.authorMapping.addAssociation(BOB_AUTHOR_ID)
+            context.axiaApi.tx.authorMapping.addAssociation(BOB_AUTHOR_ID)
           )
         );
 

@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
 use super::*;
@@ -114,7 +114,7 @@ construct_runtime!(
 		Evm: pallet_evm::{Pallet, Config, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		AuthorMapping: pallet_author_mapping::{Pallet, Storage, Config<T>, Event<T>, Call},
-		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Config, Event<T>},
+		Scheduler: pallet_scheduler::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -146,6 +146,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -182,6 +183,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = ();
 	type BlockHashMapping = SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -215,6 +217,8 @@ impl pallet_scheduler::Config for Runtime {
 	type MaxScheduledPerBlock = ();
 	type WeightInfo = ();
 	type OriginPrivilegeCmp = EqualPrivilegeOnly; // TODO : Simplest type, maybe there is better ?
+	type PreimageProvider = ();
+	type NoPreimagePostponement = ();
 }
 
 #[derive(Default)]

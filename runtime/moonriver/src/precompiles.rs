@@ -1,22 +1,22 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 use crowdloan_rewards_precompiles::CrowdloanRewardsWrapper;
 use fp_evm::Context;
-use moonbeam_relay_encoder::kusama::KusamaEncoder;
+use axtend_relay_encoder::axctest::AxiaTestEncoder;
 use pallet_author_mapping_precompiles::AuthorMappingWrapper;
 use pallet_democracy_precompiles::DemocracyWrapper;
 use pallet_evm::{AddressMapping, Precompile, PrecompileResult, PrecompileSet};
@@ -28,7 +28,7 @@ use pallet_evm_precompile_dispatch::Dispatch;
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
-use parachain_staking_precompiles::ParachainStakingWrapper;
+use allychain_staking_precompiles::AllychainStakingWrapper;
 use relay_encoder_precompiles::RelayEncoderWrapper;
 use sp_core::H160;
 use sp_std::fmt::Debug;
@@ -94,17 +94,17 @@ where
 
 /// The following distribution has been decided for the precompiles
 /// 0-1023: Ethereum Mainnet Precompiles
-/// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Moonbeam specific
-/// 2048-4095 Moonbeam specific precompiles
+/// 1024-2047 Precompiles that are not in Ethereum Mainnet but are neither Axtend specific
+/// 2048-4095 Axtend specific precompiles
 impl<R> PrecompileSet for MoonriverPrecompiles<R>
 where
 	Dispatch<R>: Precompile,
-	ParachainStakingWrapper<R>: Precompile,
+	AllychainStakingWrapper<R>: Precompile,
 	CrowdloanRewardsWrapper<R>: Precompile,
 	Erc20BalancesPrecompile<R, NativeErc20Metadata>: Precompile,
 	Erc20AssetsPrecompileSet<R>: PrecompileSet,
 	XtokensWrapper<R>: Precompile,
-	RelayEncoderWrapper<R, KusamaEncoder>: Precompile,
+	RelayEncoderWrapper<R, AxiaTestEncoder>: Precompile,
 	XcmTransactorWrapper<R>: Precompile,
 	DemocracyWrapper<R>: Precompile,
 	AuthorMappingWrapper<R>: Precompile,
@@ -129,7 +129,7 @@ where
 			a if a == hash(7) => Some(Bn128Mul::execute(input, target_gas, context, is_static)),
 			a if a == hash(8) => Some(Bn128Pairing::execute(input, target_gas, context, is_static)),
 			a if a == hash(9) => Some(Blake2F::execute(input, target_gas, context, is_static)),
-			// Non-Moonbeam specific nor Ethereum precompiles :
+			// Non-Axtend specific nor Ethereum precompiles :
 			a if a == hash(1024) => {
 				Some(Sha3FIPS256::execute(input, target_gas, context, is_static))
 			}
@@ -139,8 +139,8 @@ where
 			a if a == hash(1026) => Some(ECRecoverPublicKey::execute(
 				input, target_gas, context, is_static,
 			)),
-			// Moonbeam specific precompiles :
-			a if a == hash(2048) => Some(ParachainStakingWrapper::<R>::execute(
+			// Axtend specific precompiles :
+			a if a == hash(2048) => Some(AllychainStakingWrapper::<R>::execute(
 				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2049) => Some(CrowdloanRewardsWrapper::<R>::execute(
@@ -157,7 +157,7 @@ where
 			a if a == hash(2052) => Some(XtokensWrapper::<R>::execute(
 				input, target_gas, context, is_static,
 			)),
-			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, KusamaEncoder>::execute(
+			a if a == hash(2053) => Some(RelayEncoderWrapper::<R, AxiaTestEncoder>::execute(
 				input, target_gas, context, is_static,
 			)),
 			a if a == hash(2054) => Some(XcmTransactorWrapper::<R>::execute(
@@ -175,9 +175,8 @@ where
 		}
 	}
 	fn is_precompile(&self, address: H160) -> bool {
-		Self::used_addresses()
-			.find(|x| x == &R::AddressMapping::into_account_id(address))
-			.is_some() || Erc20AssetsPrecompileSet::<R>::new().is_precompile(address)
+		Self::used_addresses().any(|x| x == R::AddressMapping::into_account_id(address))
+			|| Erc20AssetsPrecompileSet::<R>::new().is_precompile(address)
 	}
 }
 

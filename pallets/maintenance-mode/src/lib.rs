@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! A pallet to put your runtime into a restricted maintenance or safe mode. This is useful when
 //! performing site maintenance, running data migrations, or protecting the chain during an attack.
@@ -68,7 +68,7 @@ pub mod pallet {
 	use frame_system::pallet_prelude::*;
 	/// Pallet for migrations
 	#[pallet::pallet]
-	#[pallet::generate_storage_info]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	/// Configuration trait of this pallet.
@@ -101,14 +101,16 @@ pub mod pallet {
 		#[cfg(feature = "xcm-support")]
 		type MaintenanceXcmpHandler: XcmpMessageHandler;
 		/// The executive hooks that will be used in normal operating mode
-		/// Important: Use AllPallets here if you dont want to modify the hooks behaviour
+		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
+		/// hooks behaviour
 		type NormalExecutiveHooks: OnRuntimeUpgrade
 			+ OnInitialize<Self::BlockNumber>
 			+ OnIdle<Self::BlockNumber>
 			+ OnFinalize<Self::BlockNumber>
 			+ OffchainWorker<Self::BlockNumber>;
 		/// The executive hooks that will be used in maintenance mode
-		/// Important: Use AllPallets here if you dont want to modify the hooks behaviour
+		/// Important: Use AllPalletsReversedWithSystemFirst here if you dont want to modify the
+		/// hooks behaviour
 		type MaitenanceExecutiveHooks: OnRuntimeUpgrade
 			+ OnInitialize<Self::BlockNumber>
 			+ OnIdle<Self::BlockNumber>

@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 #[macro_export]
 macro_rules! impl_runtime_apis_plus_common {
@@ -87,7 +87,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			impl moonbeam_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
+			impl axtend_rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
 				fn trace_transaction(
 					extrinsics: Vec<<Block as BlockT>::Extrinsic>,
 					traced_transaction: &EthereumTransaction,
@@ -97,7 +97,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				> {
 					#[cfg(feature = "evm-tracing")]
 					{
-						use moonbeam_evm_tracer::tracer::EvmTracer;
+						use axtend_evm_tracer::tracer::EvmTracer;
 						// Apply the a subset of extrinsics: all the substrate-specific or ethereum
 						// transactions that preceded the requested transaction.
 						for ext in extrinsics.into_iter() {
@@ -133,7 +133,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				> {
 					#[cfg(feature = "evm-tracing")]
 					{
-						use moonbeam_evm_tracer::tracer::EvmTracer;
+						use axtend_evm_tracer::tracer::EvmTracer;
 
 						let mut config = <Runtime as pallet_evm::Config>::config().clone();
 						config.estimate = true;
@@ -165,7 +165,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				}
 			}
 
-			impl moonbeam_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
+			impl axtend_rpc_primitives_txpool::TxPoolRuntimeApi<Block> for Runtime {
 				fn extrinsic_filter(
 					xts_ready: Vec<<Block as BlockT>::Extrinsic>,
 					xts_future: Vec<<Block as BlockT>::Extrinsic>,
@@ -356,7 +356,7 @@ macro_rules! impl_runtime_apis_plus_common {
 				) -> bool {
 					let block_number = parent_header.number + 1;
 
-					// The Moonbeam runtimes use an entropy source that needs to do some accounting
+					// The Axtend runtimes use an entropy source that needs to do some accounting
 					// work during block initialization. Therefore we initialize it here to match
 					// the state it will be in when the next block is being executed.
 					use frame_support::traits::OnInitialize;
@@ -364,14 +364,13 @@ macro_rules! impl_runtime_apis_plus_common {
 						&block_number,
 						&parent_header.hash(),
 						&parent_header.digest,
-						frame_system::InitKind::Inspection
 					);
 					RandomnessCollectiveFlip::on_initialize(block_number);
 
 					// Because the staking solution calculates the next staking set at the beginning
 					// of the first block in the new round, the only way to accurately predict the
 					// authors is to compute the selection during prediction.
-					if parachain_staking::Pallet::<Self>::round().should_update(block_number) {
+					if allychain_staking::Pallet::<Self>::round().should_update(block_number) {
 						// get author account id
 						use nimbus_primitives::AccountLookup;
 						let author_account_id = if let Some(account) =
@@ -384,7 +383,7 @@ macro_rules! impl_runtime_apis_plus_common {
 						// predict eligibility post-selection by computing selection results now
 						let (eligible, _) =
 							pallet_author_slot_filter::compute_pseudo_random_subset::<Self>(
-								parachain_staking::Pallet::<Self>::compute_top_candidates(),
+								allychain_staking::Pallet::<Self>::compute_top_candidates(),
 								&slot
 							);
 						eligible.contains(&author_account_id)
@@ -402,8 +401,10 @@ macro_rules! impl_runtime_apis_plus_common {
 			}
 
 			impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
-				fn collect_collation_info() -> cumulus_primitives_core::CollationInfo {
-					ParachainSystem::collect_collation_info()
+				fn collect_collation_info(
+					header: &<Block as BlockT>::Header
+				) -> cumulus_primitives_core::CollationInfo {
+					AllychainSystem::collect_collation_info(header)
 				}
 			}
 
@@ -418,19 +419,23 @@ macro_rules! impl_runtime_apis_plus_common {
 					use frame_support::traits::StorageInfoTrait;
 					use frame_system_benchmarking::Pallet as SystemBench;
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
-					use parachain_staking::Pallet as ParachainStakingBench;
+					use allychain_staking::Pallet as AllychainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use xcm_transactor::Pallet as XcmTransactorBench;
 
 					let mut list = Vec::<BenchmarkList>::new();
 
 					list_benchmark!(list, extra, frame_system, SystemBench::<Runtime>);
-					list_benchmark!(list, extra, parachain_staking, ParachainStakingBench::<Runtime>);
+					list_benchmark!(list, extra, allychain_staking, AllychainStakingBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_crowdloan_rewards, PalletCrowdloanRewardsBench::<Runtime>);
 					list_benchmark!(list, extra, pallet_author_mapping, PalletAuthorMappingBench::<Runtime>);
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					list_benchmark!(list, extra, pallet_asset_manager, PalletAssetManagerBench::<Runtime>);
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					list_benchmark!(list, extra, xcm_transactor, XcmTransactorBench::<Runtime>);
 
 					let storage_info = AllPalletsWithSystem::storage_info();
 
@@ -448,13 +453,30 @@ macro_rules! impl_runtime_apis_plus_common {
 					impl frame_system_benchmarking::Config for Runtime {}
 
 					use pallet_crowdloan_rewards::Pallet as PalletCrowdloanRewardsBench;
-					use parachain_staking::Pallet as ParachainStakingBench;
+					use allychain_staking::Pallet as AllychainStakingBench;
 					use pallet_author_mapping::Pallet as PalletAuthorMappingBench;
 					#[cfg(feature = "moonbase-runtime-benchmarks")]
 					use pallet_asset_manager::Pallet as PalletAssetManagerBench;
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					use xcm_transactor::Pallet as XcmTransactorBench;
 
-
-					let whitelist: Vec<TrackedStorageKey> = vec![];
+					let whitelist: Vec<TrackedStorageKey> = vec![
+						// Block Number
+						hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef702a5c1b19ab7a04f536c519aca4983ac")
+							.to_vec().into(),
+						// Total Issuance
+						hex_literal::hex!("c2261276cc9d1f8598ea4b6a74b15c2f57c875e4cff74148e4628f264b974c80")
+							.to_vec().into(),
+						// Execution Phase
+						hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef7ff553b5a9862a516939d82b3d3d8661a")
+							.to_vec().into(),
+						// Event Count
+						hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef70a98fdbe9ce6c55837576c60c7af3850")
+							.to_vec().into(),
+						// System Events
+						hex_literal::hex!("26aa394eea5630e07c48ae0c9558cef780d41e5e16056765bc8461851072c9d7")
+							.to_vec().into(),
+					];
 
 					let mut batches = Vec::<BenchmarkBatch>::new();
 					let params = (&config, &whitelist);
@@ -462,8 +484,8 @@ macro_rules! impl_runtime_apis_plus_common {
 					add_benchmark!(
 						params,
 						batches,
-						parachain_staking,
-						ParachainStakingBench::<Runtime>
+						allychain_staking,
+						AllychainStakingBench::<Runtime>
 					);
 					add_benchmark!(
 					params,
@@ -484,6 +506,13 @@ macro_rules! impl_runtime_apis_plus_common {
 						batches,
 						pallet_asset_manager,
 						PalletAssetManagerBench::<Runtime>
+					);
+					#[cfg(feature = "moonbase-runtime-benchmarks")]
+					add_benchmark!(
+						params,
+						batches,
+						xcm_transactor,
+						XcmTransactorBench::<Runtime>
 					);
 
 					if batches.is_empty() {

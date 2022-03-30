@@ -302,7 +302,7 @@ export const contractSources: { [key: string]: string } = {
   JoinCandidatesWrapper: `
     pragma solidity >=0.8.0;
 
-    interface ParachainStaking {
+    interface AllychainStaking {
         // First some simple accessors
     
         /// Check whether the specified address is currently a staking delegator
@@ -349,15 +349,15 @@ export const contractSources: { [key: string]: string } = {
 
     /// An even more dead simple example to call the precompile
     contract JoinCandidatesWrapper {
-        /// The ParachainStaking wrapper at the known precompile address. This will be used to 
+        /// The AllychainStaking wrapper at the known precompile address. This will be used to 
         /// make all calls to the underlying staking solution
-        ParachainStaking public staking;
+        AllychainStaking public staking;
 
         /// Solely for debugging purposes
         event Trace(uint256);
 
         constructor(address _staking) {
-            staking = ParachainStaking(_staking);
+            staking = AllychainStaking(_staking);
         }
 
         receive() external payable {}
@@ -440,7 +440,7 @@ export const contractSources: { [key: string]: string } = {
     pragma solidity >=0.8.0;
     
 
-    interface ParachainStaking {
+    interface AllychainStaking {
         // First some simple accessors
     
         /// Check whether the specified address is currently a staking delegator
@@ -489,8 +489,8 @@ export const contractSources: { [key: string]: string } = {
         /// The collator (ALITH) that this contract will benefit with delegations
         address public target = 0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac; 
 
-        /// The ParachainStaking wrapper at the known pre-compile address.
-    ParachainStaking public staking = ParachainStaking(0x0000000000000000000000000000000000000800);
+        /// The AllychainStaking wrapper at the known pre-compile address.
+    AllychainStaking public staking = AllychainStaking(0x0000000000000000000000000000000000000800);
 
         /// Take advantage of the EVMs reversion logic and the fact that it doesn't extend to
         /// Substrate storage to score free delegations for a collator candidate of our choosing
@@ -505,7 +505,7 @@ export const contractSources: { [key: string]: string } = {
     // SPDX-License-Identifier: GPL-3.0-only
     pragma solidity >=0.8.0;
 
-    /// @author The Moonbeam Team
+    /// @author The Axtend Team
     /// @title The interface through which solidity contracts will interact with Relay Encoder
     /// We follow this same interface including four-byte function selectors, in the precompile that
     /// wraps the pallet
@@ -1395,4 +1395,19 @@ export const contractSources: { [key: string]: string } = {
                 author_mapping.clear_association(nimbus_id);
             }
     }`,
+  TestCallList: `
+      pragma solidity >=0.8.0;
+      
+      contract TestCallList {
+          function call(address target, bytes memory data) public returns (bool, bytes memory) {
+              return target.call(data);
+          }
+      
+          function delegateCall(
+            address target,
+            bytes memory data
+          ) public returns (bool, bytes memory) {
+              return target.delegatecall(data);
+          }
+      }`,
 };

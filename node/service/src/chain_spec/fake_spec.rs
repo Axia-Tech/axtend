@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 /// Fake specifications, only a workaround to compile with runtime optional features.
 /// It's a zero variant enum to ensure at compile time that we never instantiate this type.
@@ -56,6 +56,10 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
+	fn fork_id(&self) -> Option<&str> {
+		todo!()
+	}
+
 	fn properties(&self) -> sc_chain_spec::Properties {
 		todo!()
 	}
@@ -80,7 +84,7 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
-	fn cloned_box(&self) -> Box<dyn polkadot_service::ChainSpec> {
+	fn cloned_box(&self) -> Box<dyn axia_service::ChainSpec> {
 		todo!()
 	}
 
@@ -88,7 +92,7 @@ impl sc_service::ChainSpec for FakeSpec {
 		todo!()
 	}
 
-	fn code_substitutes(&self) -> std::collections::HashMap<String, Vec<u8>> {
+	fn code_substitutes(&self) -> std::collections::BTreeMap<String, Vec<u8>> {
 		todo!()
 	}
 }

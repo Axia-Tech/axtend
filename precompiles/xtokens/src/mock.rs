@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
 use super::*;
@@ -34,7 +34,7 @@ use sp_runtime::{
 };
 use xcm::latest::{
 	Error as XcmError,
-	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
+	Junction::{AccountKey20, GeneralIndex, PalletInstance, Allychain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 
@@ -67,11 +67,11 @@ construct_runtime!(
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		Xtokens: orml_xtokens::{Pallet, Call, Storage, Event<T>},
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
+		AxiaXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 	}
 );
 
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
+// FRom https://github.com/PureStake/axtend/pull/518. Merge to common once is merged
 #[derive(
 	Eq,
 	PartialEq,
@@ -155,7 +155,7 @@ impl From<TestAccount> for H160 {
 pub type AssetId = u128;
 
 parameter_types! {
-	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
+	pub AllychainId: cumulus_primitives_core::ParaId = 100.into();
 }
 
 parameter_types! {
@@ -186,6 +186,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -263,6 +264,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -323,6 +325,10 @@ pub struct InvertNothing;
 impl InvertLocation for InvertNothing {
 	fn invert_location(_: &MultiLocation) -> sp_std::result::Result<MultiLocation, ()> {
 		Ok(MultiLocation::here())
+	}
+
+	fn ancestry() -> MultiLocation {
+		MultiLocation::here()
 	}
 }
 
@@ -408,7 +414,7 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 				} else {
 					Some(MultiLocation::new(
 						1,
-						Junctions::X2(Parachain(2), GeneralIndex(asset)),
+						Junctions::X2(Allychain(2), GeneralIndex(asset)),
 					))
 				}
 			}
@@ -431,17 +437,18 @@ impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMult
 }
 
 parameter_types! {
-	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
+	pub Ancestry: MultiLocation = Allychain(AllychainId::get().into()).into();
 
 	pub const BaseXcmWeight: Weight = 1000;
-	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
+	pub const RelayNetwork: NetworkId = NetworkId::Axia;
+	pub const MaxAssetsForTransfer: usize = 2;
 
-	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
+	pub SelfLocation: MultiLocation = (1, Junctions::X1(Allychain(AllychainId::get().into()))).into();
 
 	pub SelfReserve: MultiLocation = (
 		1,
 		Junctions::X2(
-			Parachain(ParachainId::get().into()),
+			Allychain(AllychainId::get().into()),
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)).into();
 	pub MaxInstructions: u32 = 100;
@@ -458,6 +465,7 @@ impl orml_xtokens::Config for Runtime {
 	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type BaseXcmWeight = BaseXcmWeight;
 	type LocationInverter = InvertNothing;
+	type MaxAssetsForTransfer = MaxAssetsForTransfer;
 }
 
 pub(crate) struct ExtBuilder {

@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 use super::blockscout::BlockscoutCallInner;
 use crate::types::{
@@ -43,14 +43,14 @@ impl super::ResponseFormatter for Formatter {
 		for entry in listener.entries.iter() {
 			let mut result: Vec<Call> = entry
 				.into_iter()
-				.filter_map(|(_, it)| {
+				.map(|(_, it)| {
 					let from = it.from;
 					let trace_address = it.trace_address.clone();
 					let value = it.value;
 					let gas = it.gas;
 					let gas_used = it.gas_used;
 					let inner = it.inner.clone();
-					Some(Call::CallTracer(CallTracerCall {
+					Call::CallTracer(CallTracerCall {
 						from: from,
 						gas: gas,
 						gas_used: gas_used,
@@ -105,9 +105,8 @@ impl super::ResponseFormatter for Formatter {
 							}
 						},
 						calls: Vec::new(),
-					}))
+					})
 				})
-				.map(|x| x)
 				.collect();
 			// Geth's `callTracer` expects a tree of nested calls and we have a stack.
 			//
@@ -190,7 +189,9 @@ impl super::ResponseFormatter for Formatter {
 				});
 				// Stack pop-and-push.
 				while result.len() > 1 {
-					let mut last = result.pop().unwrap();
+					let mut last = result
+						.pop()
+						.expect("result.len() > 1, so pop() necessarily returns an element");
 					// Find the parent index.
 					if let Some(index) =
 						result
@@ -231,7 +232,9 @@ impl super::ResponseFormatter for Formatter {
 				*trace_address = None;
 			}
 			if result.len() == 1 {
-				traces.push(TransactionTrace::CallListNested(result.pop().unwrap()));
+				traces.push(TransactionTrace::CallListNested(result.pop().expect(
+					"result.len() == 1, so pop() necessarily returns this element",
+				)));
 			}
 		}
 		if traces.is_empty() {

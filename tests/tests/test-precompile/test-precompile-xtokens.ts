@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { describeDevAxtendAllEthTxTypes } from "../../util/setup-dev-tests";
 import { ethers } from "ethers";
 import { getCompiled } from "../../util/contracts";
 import { createContract, createTransaction } from "../../util/transactions";
@@ -11,12 +11,12 @@ const ADDRESS_XTOKENS = "0x0000000000000000000000000000000000000804";
 export const BALANCES_ADDRESS = "0x0000000000000000000000000000000000000802";
 
 async function getBalance(context, blockHeight, address) {
-  const blockHash = await context.polkadotApi.rpc.chain.getBlockHash(blockHeight);
-  const account = await context.polkadotApi.query.system.account.at(blockHash, address);
+  const blockHash = await context.axiaApi.rpc.chain.getBlockHash(blockHeight);
+  const account = await context.axiaApi.query.system.account.at(blockHash, address);
   return account.data.free;
 }
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevAxtendAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -92,7 +92,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevAxtendAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer xtokens with fee", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -174,7 +174,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevAxtendAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -188,25 +188,25 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     // NetworkId::Any
     const destination_network_id = "00";
 
-    // Junction::Parachain(0)
-    const x2_parachain_asset_enum_selector = "0x00";
-    const x2_parachain_id = "00000000";
+    // Junction::Allychain(0)
+    const x2_allychain_asset_enum_selector = "0x00";
+    const x2_allychain_id = "00000000";
 
     // Junction::PalletInstance(3)
     const x2_pallet_instance_enum_selector = "0x04";
     const x2_instance = "03";
 
-    // This represents X3(Parent, Parachain(1000), PalletInstance(3)))
+    // This represents X3(Parent, Allychain(1000), PalletInstance(3)))
 
     // This multilocation represents our native token
     let asset = [
       // one parent
       1,
-      // X2(Parachain, PalletInstance)
-      // Parachain: Parachain selector (00) + parachain id (0) in 4 bytes (00000000)
+      // X2(Allychain, PalletInstance)
+      // Allychain: Allychain selector (00) + allychain id (0) in 4 bytes (00000000)
       // PalletInstance: Selector (04) + pallet instance 1 byte (03)
       [
-        x2_parachain_asset_enum_selector + x2_parachain_id,
+        x2_allychain_asset_enum_selector + x2_allychain_id,
         x2_pallet_instance_enum_selector + x2_instance,
       ],
     ];
@@ -272,7 +272,7 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
+describeDevAxtendAllEthTxTypes("Precompiles - xtokens", (context) => {
   it("allows to issue transfer_multiasset xtokens with fee", async function () {
     const contractData = await getCompiled("XtokensInstance");
     const iFace = new ethers.utils.Interface(contractData.contract.abi);
@@ -286,25 +286,25 @@ describeDevMoonbeamAllEthTxTypes("Precompiles - xtokens", (context) => {
     // NetworkId::Any
     const destination_network_id = "00";
 
-    // Junction::Parachain(0)
-    const x2_parachain_asset_enum_selector = "0x00";
-    const x2_parachain_id = "00000000";
+    // Junction::Allychain(0)
+    const x2_allychain_asset_enum_selector = "0x00";
+    const x2_allychain_id = "00000000";
 
     // Junction::PalletInstance(3)
     const x2_pallet_instance_enum_selector = "0x04";
     const x2_instance = "03";
 
-    // This represents X3(Parent, Parachain(1000), PalletInstance(3)))
+    // This represents X3(Parent, Allychain(1000), PalletInstance(3)))
 
     // This multilocation represents our native token
     let asset = [
       // one parent
       1,
-      // X2(Parachain, PalletInstance)
-      // Parachain: Parachain selector (00) + parachain id (0) in 4 bytes (00000000)
+      // X2(Allychain, PalletInstance)
+      // Allychain: Allychain selector (00) + allychain id (0) in 4 bytes (00000000)
       // PalletInstance: Selector (04) + pallet instance 1 byte (03)
       [
-        x2_parachain_asset_enum_selector + x2_parachain_id,
+        x2_allychain_asset_enum_selector + x2_allychain_id,
         x2_pallet_instance_enum_selector + x2_instance,
       ],
     ];

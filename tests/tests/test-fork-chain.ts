@@ -1,10 +1,10 @@
 import { expect } from "chai";
-import { describeDevMoonbeam, describeDevMoonbeamAllEthTxTypes } from "../util/setup-dev-tests";
+import { describeDevAxtend, describeDevAxtendAllEthTxTypes } from "../util/setup-dev-tests";
 import { createTransfer } from "../util/transactions";
 
 import { TEST_ACCOUNT } from "../util/constants";
 
-describeDevMoonbeam("Fork", (context) => {
+describeDevAxtend("Fork", (context) => {
   it("should change best chain to the longest chain", async function () {
     // Creation of the best chain so far, with blocks 0-1-2
     await context.createBlock({ finalize: false });
@@ -17,7 +17,7 @@ describeDevMoonbeam("Fork", (context) => {
     // Now lets fork the chain
     let currentHeight = await context.web3.eth.getBlockNumber();
     // We start parenting to the genesis
-    let parentHash = (await context.polkadotApi.rpc.chain.getBlockHash(0)) as any;
+    let parentHash = (await context.axiaApi.rpc.chain.getBlockHash(0)) as any;
     for (let i = 0; i <= currentHeight; i++) {
       parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;
     }
@@ -30,7 +30,7 @@ describeDevMoonbeam("Fork", (context) => {
   });
 });
 
-describeDevMoonbeamAllEthTxTypes("Fork", (context) => {
+describeDevAxtendAllEthTxTypes("Fork", (context) => {
   it("should re-insert Tx from retracted fork on new canonical chain", async function () {
     // Creation of the best chain so far, with blocks 0-1-2 and a transfer in block 2
     await context.createBlock({ finalize: false });
@@ -44,7 +44,7 @@ describeDevMoonbeamAllEthTxTypes("Fork", (context) => {
 
     // Fork from 0-1-2
     //      to   0-1b-2b-3b-4b-5b-6b-7b-8b-9b-10b
-    let parentHash = (await context.polkadotApi.rpc.chain.getBlockHash(0)) as any;
+    let parentHash = (await context.axiaApi.rpc.chain.getBlockHash(0)) as any;
     // Create enough blocks to ensure the TX is re-scheduled and that chain is new best
     for (let i = 0; i < 10; i++) {
       parentHash = (await context.createBlock({ parentHash, finalize: false })).block.hash;

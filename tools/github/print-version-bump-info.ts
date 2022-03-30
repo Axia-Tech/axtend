@@ -4,16 +4,16 @@ import { getCommitAndLabels } from "./github-utils";
 
 async function printInfo(octokit: Octokit, previousVersion: string, nextVersion: string) {
   const owners = {
-    substrate: "paritytech",
-    polkadot: "paritytech",
-    cumulus: "paritytech",
+    substrate: "axiatech",
+    axia: "axiatech",
+    cumulus: "axiatech",
     nimbus: "purestake",
   };
   const prefixes = {
-    substrate: "polkadot-",
-    polkadot: "release-",
-    cumulus: "polkadot-",
-    nimbus: "moonbeam-polkadot-",
+    substrate: "axia-",
+    axia: "release-",
+    cumulus: "axia-",
+    nimbus: "axtend-axia-",
   };
   console.log(`# Description\n`);
   console.log(`This ticket is automatically generated using\n`);
@@ -104,7 +104,7 @@ async function printInfo(octokit: Octokit, previousVersion: string, nextVersion:
   console.log(`\n## Review 'substrate-migrations' repo\n`);
   console.log(`https://github.com/apopiak/substrate-migrations#frame-migrations`);
   console.log(`\nThis repository contains a list of FRAME-related migrations which might be`);
-  console.log(`relevant to Moonbeam.`);
+  console.log(`relevant to Axtend.`);
 }
 
 async function main() {

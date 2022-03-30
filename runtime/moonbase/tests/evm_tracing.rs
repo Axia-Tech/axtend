@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Moonbase EVM tracing Integration Tests
 
@@ -26,7 +26,7 @@ mod tests {
 	use pallet_evm::AddressMapping;
 	use sp_core::H160;
 
-	use moonbeam_rpc_primitives_debug::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
+	use axtend_rpc_primitives_debug::runtime_decl_for_DebugRuntimeApi::DebugRuntimeApi;
 	use std::str::FromStr;
 
 	#[test]

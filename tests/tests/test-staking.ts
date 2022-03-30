@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import Keyring from "@polkadot/keyring";
+import Keyring from "@axia/keyring";
 import {
   DEFAULT_GENESIS_MAPPING,
   DEFAULT_GENESIS_STAKING,
@@ -11,29 +11,29 @@ import {
   MIN_GLMR_NOMINATOR,
   GLMR,
 } from "../util/constants";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevAxtend } from "../util/setup-dev-tests";
 
-describeDevMoonbeam("Staking - Genesis", (context) => {
+describeDevAxtend("Staking - Genesis", (context) => {
   it("should match collator reserved bond reserved", async function () {
-    const account = await context.polkadotApi.query.system.account(COLLATOR_ACCOUNT);
+    const account = (await context.axiaApi.query.system.account(COLLATOR_ACCOUNT)) as any;
     const expectedReserved = DEFAULT_GENESIS_STAKING + DEFAULT_GENESIS_MAPPING;
     expect(account.data.reserved.toString()).to.equal(expectedReserved.toString());
   });
 
   it("should include collator from the specs", async function () {
-    const collators = await context.polkadotApi.query.parachainStaking.selectedCandidates();
+    const collators = await context.axiaApi.query.allychainStaking.selectedCandidates();
     expect((collators[0] as Buffer).toString("hex")).equal(COLLATOR_ACCOUNT);
   });
 
   it("should have collator state as defined in the specs", async function () {
-    const collator = await context.polkadotApi.query.parachainStaking.candidateInfo(
+    const collator = await context.axiaApi.query.allychainStaking.candidateInfo(
       COLLATOR_ACCOUNT
     );
     expect(collator.toHuman()["status"]).equal("Active");
   });
 
   it("should have inflation matching specs", async function () {
-    const inflationInfo = await context.polkadotApi.query.parachainStaking.inflationConfig();
+    const inflationInfo = await context.axiaApi.query.allychainStaking.inflationConfig();
     // {
     //   expect: {
     //     min: '100.0000 kUNIT',
@@ -62,16 +62,16 @@ describeDevMoonbeam("Staking - Genesis", (context) => {
   });
 });
 
-describeDevMoonbeam("Staking - Join Candidates", (context) => {
+describeDevAxtend("Staking - Join Candidates", (context) => {
   it("should successfully call joinCandidates on ETHAN", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     const ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-    await context.polkadotApi.tx.parachainStaking
+    await context.axiaApi.tx.allychainStaking
       .joinCandidates(MIN_GLMR_STAKING, 1)
       .signAndSend(ethan);
     await context.createBlock();
 
-    let candidatesAfter = (await context.polkadotApi.query.parachainStaking.candidatePool()) as any;
+    let candidatesAfter = (await context.axiaApi.query.allychainStaking.candidatePool()) as any;
     expect(candidatesAfter.length).to.equal(2, "new candidate should have been added");
     expect(candidatesAfter[1].owner.toString()).to.equal(
       ETHAN,
@@ -84,19 +84,19 @@ describeDevMoonbeam("Staking - Join Candidates", (context) => {
   });
 });
 
-describeDevMoonbeam("Staking - Join Delegators", (context) => {
+describeDevAxtend("Staking - Join Delegators", (context) => {
   let ethan;
   before("should successfully call delegate on ALITH", async function () {
     const keyring = new Keyring({ type: "ethereum" });
     ethan = await keyring.addFromUri(ETHAN_PRIVKEY, null, "ethereum");
-    await context.polkadotApi.tx.parachainStaking
+    await context.axiaApi.tx.allychainStaking
       .delegate(ALITH, MIN_GLMR_NOMINATOR, 0, 0)
       .signAndSend(ethan);
     await context.createBlock();
   });
   it("should have successfully delegated stake to ALITH", async function () {
     const delegatorsAfter = (
-      (await context.polkadotApi.query.parachainStaking.delegatorState(ETHAN)) as any
+      (await context.axiaApi.query.allychainStaking.delegatorState(ETHAN)) as any
     ).unwrap();
     expect(delegatorsAfter.delegations[0].owner.toString()).to.equal(
       ALITH,

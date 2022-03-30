@@ -1,6 +1,6 @@
 [package]
 name = "relay-encoder-precompiles"
-authors = [ "PureStake" ]
+authors = ["PureStake"]
 description = "A Precompile to make relay staking calls encoding accessible to pallet-evm"
 edition = "2018"
 version = "0.1.0"
@@ -10,25 +10,27 @@ log = "0.4"
 num_enum = { version = "0.5.3", default-features = false }
 rustc-hex = { version = "2.0.1", default-features = false }
 
-# Moonbeam
+# Axtend
 precompile-utils = { path = "../utils", default-features = false }
 
 # Substrate
-frame-support = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
-frame-system = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
-pallet-staking = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
-parity-scale-codec = { version = "2.0.0", default-features = false, features = [ "derive" ] }
-sp-core = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
+frame-support = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
+frame-system = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
+pallet-staking = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
+parity-scale-codec = { version = "2.0.0", default-features = false, features = [
+	"derive",
+] }
+sp-core = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
+sp-runtime = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
+sp-std = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
 
 
 # Frontier
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
+fp-evm = { git = "https://github.com/axia-tech/frontier", branch = "frontier", default-features = false }
+pallet-evm = { git = "https://github.com/axia-tech/frontier", branch = "frontier", default-features = false }
 
 # Cumulus
-cumulus-primitives-core = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.15", default-features = false }
+cumulus-primitives-core = { git = "https://github.com/axia-tech/cumulus", branch = "cumulus", default-features = false }
 
 [dev-dependencies]
 derive_more = "0.99"
@@ -37,16 +39,18 @@ serde = "1.0.100"
 sha3 = "0.9"
 
 # Substrate
-pallet-balances = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
-pallet-timestamp = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1" }
-scale-info = { version = "1.0", default-features = false, features = [ "derive" ] }
-sp-io = { git = "https://github.com/purestake/substrate", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
+pallet-balances = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }
+pallet-timestamp = { git = "https://github.com/axia-tech/axlib", branch = "axlib" }
+scale-info = { version = "1.0", default-features = false, features = [
+	"derive",
+] }
+sp-io = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
 
 # Cumulus
-cumulus-pallet-parachain-system = { git = "https://github.com/purestake/cumulus", branch = "moonbeam-polkadot-v0.9.15" }
+cumulus-pallet-allychain-system = { git = "https://github.com/axia-tech/cumulus", branch = "cumulus" }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"cumulus-primitives-core/std",
 	"fp-evm/std",

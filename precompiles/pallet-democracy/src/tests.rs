@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
 	mock::{
@@ -236,7 +236,7 @@ fn lowest_unbaked_zero() {
 }
 
 // This test is currently failing. I believe it is caused by a bug in the underlying pallet. I've
-// asked about it in https://github.com/paritytech/substrate/issues/9739
+// asked about it in https://github.com/axiatech/substrate/issues/9739
 #[ignore]
 #[test]
 fn lowest_unbaked_non_zero() {
@@ -305,42 +305,42 @@ fn lowest_unbaked_non_zero() {
 		});
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
+// waiting on https://github.com/axiatech/substrate/pull/9565
 #[ignore]
 #[test]
 fn ongoing_ref_info_works() {
 	todo!()
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
+// waiting on https://github.com/axiatech/substrate/pull/9565
 #[ignore]
 #[test]
 fn ongoing_ref_info_bad_index() {
 	todo!()
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
+// waiting on https://github.com/axiatech/substrate/pull/9565
 #[ignore]
 #[test]
 fn ongoing_ref_info_is_not_ongoing() {
 	todo!()
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
+// waiting on https://github.com/axiatech/substrate/pull/9565
 #[ignore]
 #[test]
 fn finished_ref_info_works() {
 	todo!()
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
+// waiting on https://github.com/axiatech/substrate/pull/9565
 #[ignore]
 #[test]
 fn finished_ref_info_bad_index() {
 	todo!()
 }
 
-// waiting on https://github.com/paritytech/substrate/pull/9565
+// waiting on https://github.com/axiatech/substrate/pull/9565
 #[ignore]
 #[test]
 fn finished_ref_info_is_not_finished() {
@@ -430,8 +430,8 @@ fn second_works() {
 					}
 					.into(),
 					DemocracyEvent::Seconded {
-						who: Alice,
-						proposal_index: 0
+						seconder: Alice,
+						prop_index: 0
 					}
 					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
@@ -476,7 +476,7 @@ fn standard_vote_aye_works() {
 					}
 					.into(),
 					DemocracyEvent::Voted {
-						who: Alice,
+						voter: Alice,
 						ref_index: 0,
 						vote: AccountVote::Standard {
 							vote: Vote {
@@ -545,7 +545,7 @@ fn standard_vote_nay_conviction_works() {
 					}
 					.into(),
 					DemocracyEvent::Voted {
-						who: Alice,
+						voter: Alice,
 						ref_index: 0,
 						vote: AccountVote::Standard {
 							vote: Vote {
@@ -629,7 +629,7 @@ fn remove_vote_works() {
 					}
 					.into(),
 					DemocracyEvent::Voted {
-						who: Alice,
+						voter: Alice,
 						ref_index: 0,
 						vote: AccountVote::Standard {
 							vote: Vote {
@@ -664,7 +664,7 @@ fn remove_vote_dne() {
 		.build()
 		.execute_with(|| {
 			// Before we can vote on anything, we have to have a referendum there to vote on.
-			// This will be nicer after https://github.com/paritytech/substrate/pull/9484
+			// This will be nicer after https://github.com/axiatech/substrate/pull/9484
 			// Make a proposal
 			assert_ok!(Call::Democracy(DemocracyCall::propose {
 				proposal_hash: Default::default(), // Propose the default hash
@@ -839,7 +839,7 @@ fn unlock_works() {
 
 			// Tokens are locked in `try_vote` when a vote is cast. Why is that not
 			// reflected here?
-			// https://github.com/paritytech/substrate/blob/master/frame/democracy/src/lib.rs#L1405
+			// https://github.com/axiatech/substrate/blob/master/frame/democracy/src/lib.rs#L1405
 			// One possible way to look further: I just noticed there is a `Locks` storage item in
 			// the pallet.
 			// And also, maybe write a test in the pallet to ensure the locks work as expected.

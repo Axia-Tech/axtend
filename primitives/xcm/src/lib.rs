@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! The XCM primitive trait implementations
 
@@ -22,19 +22,20 @@ use frame_support::{
 	traits::{tokens::fungibles::Mutate, Get, OriginTrait},
 	weights::{constants::WEIGHT_PER_SECOND, Weight},
 };
-use sp_runtime::traits::Zero;
-use sp_std::borrow::Borrow;
-use sp_std::{convert::TryInto, marker::PhantomData};
+use sp_runtime::traits::{CheckedConversion, Zero};
+use sp_std::{borrow::Borrow, vec::Vec};
+use sp_std::{
+	convert::{TryFrom, TryInto},
+	marker::PhantomData,
+};
 use xcm::latest::{
 	AssetId as xcmAssetId, Error as XcmError, Fungibility,
-	Junction::{AccountKey20, Parachain},
+	Junction::{AccountKey20, Allychain},
 	Junctions::*,
 	MultiAsset, MultiLocation, NetworkId,
 };
 use xcm_builder::TakeRevenue;
-use xcm_executor::traits::{FilterAssetLocation, MatchesFungibles, WeightTrader};
-
-use sp_std::vec::Vec;
+use xcm_executor::traits::{FilterAssetLocation, MatchesFungible, MatchesFungibles, WeightTrader};
 
 /// Converter struct implementing `AssetIdConversion` converting a numeric asset ID
 /// (must be `TryFrom/TryInto<u128>`) into a MultiLocation Value and Viceversa through
@@ -150,6 +151,12 @@ impl<
 		match (first_asset.id, first_asset.fun) {
 			(xcmAssetId::Concrete(id), Fungibility::Fungible(_)) => {
 				let asset_type: AssetType = id.clone().into();
+				// Shortcut if we know the asset is not supported
+				// This involves the same db read per block, mitigating any attack based on
+				// non-supported assets
+				if !AssetIdInfoGetter::payment_is_supported(asset_type.clone()) {
+					return Err(XcmError::TooExpensive);
+				}
 				if let Some(units_per_second) = AssetIdInfoGetter::get_units_per_second(asset_type)
 				{
 					let amount = units_per_second.saturating_mul(weight as u128)
@@ -250,8 +257,8 @@ impl Reserve for MultiAsset {
 			let first_interior = location.first_interior();
 			let parents = location.parent_count();
 			match (parents, first_interior.clone()) {
-				(0, Some(Parachain(id))) => Some(MultiLocation::new(0, X1(Parachain(id.clone())))),
-				(1, Some(Parachain(id))) => Some(MultiLocation::new(1, X1(Parachain(id.clone())))),
+				(0, Some(Allychain(id))) => Some(MultiLocation::new(0, X1(Allychain(id.clone())))),
+				(1, Some(Allychain(id))) => Some(MultiLocation::new(1, X1(Allychain(id.clone())))),
 				(1, _) => Some(MultiLocation::parent()),
 				_ => None,
 			}
@@ -284,9 +291,11 @@ pub trait AssetTypeGetter<AssetId, AssetType> {
 	fn get_asset_id(asset_type: AssetType) -> Option<AssetId>;
 }
 
-// Defines the trait to obtain the units per second of a give assetId for local execution
-// This parameter will be used to charge for fees upon assetId deposit
+// Defines the trait to obtain the units per second of a give asset_type for local execution
+// This parameter will be used to charge for fees upon asset_type deposit
 pub trait UnitsToWeightRatio<AssetType> {
+	// Whether payment in a particular asset_type is suppotrted
+	fn payment_is_supported(asset_type: AssetType) -> bool;
 	// Get units per second from asset type
 	fn get_units_per_second(asset_type: AssetType) -> Option<u128>;
 }
@@ -348,6 +357,24 @@ impl<
 				target: "xcm",
 				"take revenue failed matching fungible"
 			),
+		}
+	}
+}
+
+// Multi IsConcrete Implementation. Allows us to route both pre and post 0.9.16 anchoring versions
+// of our native token to the same currency
+// The incoming MultiAsset is matched against a Vec of multilocations and returned Some
+// if matches
+pub struct MultiIsConcrete<T>(PhantomData<T>);
+impl<T: Get<Vec<MultiLocation>>, B: TryFrom<u128>> MatchesFungible<B> for MultiIsConcrete<T> {
+	fn matches_fungible(a: &MultiAsset) -> Option<B> {
+		match (&a.id, &a.fun) {
+			(xcmAssetId::Concrete(ref id), Fungibility::Fungible(ref amount))
+				if T::get().contains(id) =>
+			{
+				CheckedConversion::checked_from(*amount)
+			}
+			_ => None,
 		}
 	}
 }

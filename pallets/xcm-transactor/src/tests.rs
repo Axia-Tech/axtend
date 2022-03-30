@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::mock::*;
 use crate::*;
@@ -41,7 +41,10 @@ fn test_register_address() {
 
 			assert_eq!(XcmTransactor::index_to_account(&1).unwrap(), 1u64);
 
-			let expected = vec![crate::Event::RegisterdDerivative(1u64, 1)];
+			let expected = vec![crate::Event::RegisteredDerivative {
+				account_id: 1u64,
+				index: 1,
+			}];
 			assert_eq!(events(), expected);
 		})
 }
@@ -73,7 +76,7 @@ fn test_transact_through_derivative_errors() {
 				Origin::root(),
 				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
 					1,
-					Junctions::X1(Junction::Parachain(1000))
+					Junctions::X1(Junction::Allychain(1000))
 				))),
 				0,
 				1,
@@ -88,7 +91,7 @@ fn test_transact_through_derivative_errors() {
 					1,
 					Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::new(
 						1,
-						Junctions::X1(Junction::Parachain(1000))
+						Junctions::X1(Junction::Allychain(1000))
 					))),
 					100u64,
 					vec![0u8]
@@ -164,22 +167,25 @@ fn test_transact_through_derivative_multilocation_success() {
 				vec![1u8]
 			));
 			let expected = vec![
-				crate::Event::RegisterdDerivative(1u64, 1),
-				crate::Event::TransactInfoChanged(
-					MultiLocation::parent(),
-					RemoteTransactInfoWithMaxWeight {
+				crate::Event::RegisteredDerivative {
+					account_id: 1u64,
+					index: 1,
+				},
+				crate::Event::TransactInfoChanged {
+					location: MultiLocation::parent(),
+					remote_info: RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
 					},
-				),
-				crate::Event::TransactedDerivative(
-					1u64,
-					MultiLocation::parent(),
-					Transactors::Relay
+				},
+				crate::Event::TransactedDerivative {
+					account_id: 1u64,
+					dest: MultiLocation::parent(),
+					call: Transactors::Relay
 						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
-					1,
-				),
+					index: 1,
+				},
 			];
 			assert_eq!(events(), expected);
 		})
@@ -213,22 +219,25 @@ fn test_transact_through_derivative_success() {
 				vec![1u8]
 			));
 			let expected = vec![
-				crate::Event::RegisterdDerivative(1u64, 1),
-				crate::Event::TransactInfoChanged(
-					MultiLocation::parent(),
-					RemoteTransactInfoWithMaxWeight {
+				crate::Event::RegisteredDerivative {
+					account_id: 1u64,
+					index: 1,
+				},
+				crate::Event::TransactInfoChanged {
+					location: MultiLocation::parent(),
+					remote_info: RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
 					},
-				),
-				crate::Event::TransactedDerivative(
-					1u64,
-					MultiLocation::parent(),
-					Transactors::Relay
+				},
+				crate::Event::TransactedDerivative {
+					account_id: 1u64,
+					dest: MultiLocation::parent(),
+					call: Transactors::Relay
 						.encode_call(UtilityAvailableCalls::AsDerivative(1, vec![1u8])),
-					1,
-				),
+					index: 1,
+				},
 			];
 			assert_eq!(events(), expected);
 		})
@@ -273,15 +282,19 @@ fn test_root_can_transact_through_sovereign() {
 			));
 
 			let expected = vec![
-				crate::Event::TransactInfoChanged(
-					MultiLocation::parent(),
-					RemoteTransactInfoWithMaxWeight {
+				crate::Event::TransactInfoChanged {
+					location: MultiLocation::parent(),
+					remote_info: RemoteTransactInfoWithMaxWeight {
 						transact_extra_weight: 0,
 						fee_per_second: 1,
 						max_weight: 10000,
 					},
-				),
-				crate::Event::TransactedSovereign(1u64, MultiLocation::parent(), vec![1u8]),
+				},
+				crate::Event::TransactedSovereign {
+					fee_payer: 1u64,
+					dest: MultiLocation::parent(),
+					call: vec![1u8],
+				},
 			];
 			assert_eq!(events(), expected);
 		})
@@ -342,5 +355,71 @@ fn test_max_transact_weight_migration_works() {
 				XcmTransactor::transact_info(MultiLocation::parent()).unwrap(),
 				expected_transacted_info,
 			)
+		})
+}
+
+#[test]
+fn de_registering_works() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can register
+			assert_ok!(XcmTransactor::register(Origin::root(), 1u64, 1));
+
+			assert_eq!(XcmTransactor::index_to_account(&1).unwrap(), 1u64);
+
+			assert_ok!(XcmTransactor::deregister(Origin::root(), 1));
+
+			assert!(XcmTransactor::index_to_account(&1).is_none());
+
+			let expected = vec![
+				crate::Event::RegisteredDerivative {
+					account_id: 1u64,
+					index: 1,
+				},
+				crate::Event::DeRegisteredDerivative { index: 1 },
+			];
+			assert_eq!(events(), expected);
+		})
+}
+
+#[test]
+fn removing_transact_info_works() {
+	ExtBuilder::default()
+		.with_balances(vec![])
+		.build()
+		.execute_with(|| {
+			// Root can set transact info
+			assert_ok!(XcmTransactor::set_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+				0,
+				1,
+				10000
+			));
+
+			// Root can remove transact info
+			assert_ok!(XcmTransactor::remove_transact_info(
+				Origin::root(),
+				Box::new(xcm::VersionedMultiLocation::V1(MultiLocation::parent())),
+			));
+
+			assert!(XcmTransactor::transact_info(MultiLocation::parent()).is_none());
+
+			let expected = vec![
+				crate::Event::TransactInfoChanged {
+					location: MultiLocation::parent(),
+					remote_info: RemoteTransactInfoWithMaxWeight {
+						transact_extra_weight: 0,
+						fee_per_second: 1,
+						max_weight: 10000,
+					},
+				},
+				crate::Event::TransactInfoRemoved {
+					location: MultiLocation::parent(),
+				},
+			];
+			assert_eq!(events(), expected);
 		})
 }

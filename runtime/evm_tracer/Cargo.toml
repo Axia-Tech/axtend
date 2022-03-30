@@ -1,35 +1,39 @@
 [package]
-name = "moonbeam-evm-tracer"
-authors = [ "PureStake" ]
+name = "axtend-evm-tracer"
+authors = ["PureStake"]
 edition = "2018"
-homepage = "https://moonbeam.network"
+homepage = "https://axtend.network"
 license = "GPL-3.0-only"
-repository = "https://github.com/PureStake/moonbeam/"
+repository = "https://github.com/PureStake/axtend/"
 version = "0.1.0"
 
 [dependencies]
 
-# Moonbeam
-evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", default-features = false, features = [ "evm-tracing" ] }
-moonbeam-primitives-ext = { path = "../../primitives/ext", default-features = false }
+# Axtend
+evm-tracing-events = { path = "../../primitives/rpc/evm-tracing-events", default-features = false, features = [
+	"evm-tracing",
+] }
+axtend-primitives-ext = { path = "../../primitives/ext", default-features = false }
 
 # Substrate
 codec = { package = "parity-scale-codec", version = "2.2", default-features = false }
-sp-core = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
-sp-io = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
-sp-runtime = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
-sp-std = { git = "https://github.com/purestake/substrate.git", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
+sp-core = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
+sp-io = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
+sp-runtime = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
+sp-std = { git = "https://github.com/axia-tech/axlib", branch = "axlib", default-features = false }
 
 # Frontier
 ethereum-types = { version = "0.12.1", default-features = false }
-evm = { version = "0.33.1", default-features = false, features = [ "with-codec" ] }
+evm = { version = "0.33.1", default-features = false, features = [
+	"with-codec",
+] }
 evm-gasometer = { version = "0.33.0", default-features = false }
 evm-runtime = { version = "0.33.0", default-features = false }
-fp-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
-pallet-evm = { git = "https://github.com/purestake/frontier", branch = "moonbeam-polkadot-v0.9.15-1", default-features = false }
+fp-evm = { git = "https://github.com/axia-tech/frontier", branch = "frontier", default-features = false }
+pallet-evm = { git = "https://github.com/axia-tech/frontier", branch = "frontier", default-features = false }
 
 [features]
-default = [ "std" ]
+default = ["std"]
 std = [
 	"codec/std",
 	"ethereum-types/std",
@@ -39,7 +43,7 @@ std = [
 	"evm/std",
 	"evm/with-serde",
 	"fp-evm/std",
-	"moonbeam-primitives-ext/std",
+	"axtend-primitives-ext/std",
 	"pallet-evm/std",
 	"sp-core/std",
 	"sp-runtime/std",

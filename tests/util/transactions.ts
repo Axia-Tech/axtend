@@ -4,13 +4,15 @@ import * as RLP from "rlp";
 import { getCompiled } from "./contracts";
 import { Contract } from "web3-eth-contract";
 import fetch from "node-fetch";
-import { Event } from "@polkadot/types/interfaces";
+import { Event } from "@axia/types/interfaces";
 import { DevTestContext } from "./setup-dev-tests";
 import { customWeb3Request } from "./providers";
 // Ethers is used to handle post-london transactions
 import { ethers } from "ethers";
 import { AccessListish } from "@ethersproject/transactions";
 import { createBlockWithExtrinsic } from "./substrate-rpc";
+import type { ApiPromise } from "@axia/api";
+import type { SubmittableExtrinsic } from "@axia/api/promise/types";
 const debug = require("debug")("test:transaction");
 
 export interface TransactionOptions {
@@ -290,7 +292,54 @@ export async function callPrecompile(
 
 /// Sign and send Substrate transaction and then create a block.
 /// Will provide events emited by the transaction to check if they match what is expected.
-export async function substrateTransaction(context, sender, polkadotCall): Promise<Event[]> {
-  const { events } = await createBlockWithExtrinsic(context, sender, polkadotCall);
+export async function substrateTransaction(context, sender, axiaCall): Promise<Event[]> {
+  const { events } = await createBlockWithExtrinsic(context, sender, axiaCall);
   return events;
 }
+
+export const sendAllStreamAndWaitLast = async (
+  api: ApiPromise,
+  extrinsics: SubmittableExtrinsic[],
+  { threshold = 500, batch = 200, timeout = 120000 } = {
+    threshold: 500,
+    batch: 200,
+    timeout: 120000,
+  }
+) => {
+  let promises = [];
+  while (extrinsics.length > 0) {
+    const pending = await api.rpc.author.pendingExtrinsics();
+    if (pending.length < threshold) {
+      const chunk = extrinsics.splice(0, Math.min(threshold - pending.length, batch));
+      // console.log(`Sending ${chunk.length}tx (${extrinsics.length} left)`);
+      promises.push(
+        Promise.all(
+          chunk.map((tx) => {
+            return new Promise(async (resolve, reject) => {
+              let unsub;
+              const timer = setTimeout(() => {
+                reject(`timed out`);
+                unsub();
+              }, timeout);
+              unsub = await tx.send((result) => {
+                // reset the timer
+                if (result.isError) {
+                  console.log(result.toHuman());
+                  clearTimeout(timer);
+                  reject(result.toHuman());
+                }
+                if (result.isInBlock) {
+                  unsub();
+                  clearTimeout(timer);
+                  resolve(null);
+                }
+              });
+            }).catch((e) => {});
+          })
+        )
+      );
+    }
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+  }
+  await Promise.all(promises);
+};

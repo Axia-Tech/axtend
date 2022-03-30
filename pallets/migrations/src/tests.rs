@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
 use crate::mock::{events, ExtBuilder, Migrations, MockMigrationManager, System};
@@ -106,7 +106,9 @@ fn on_runtime_upgrade_emits_events() {
 
 		let expected = vec![
 			Event::RuntimeUpgradeStarted(),
-			Event::RuntimeUpgradeCompleted(100000000u64.into()),
+			Event::RuntimeUpgradeCompleted {
+				weight: 100000000u64.into(),
+			},
 		];
 		assert_eq!(events(), expected);
 	});
@@ -157,9 +159,16 @@ fn migration_should_only_be_invoked_once() {
 					);
 					let mut expected = vec![
 						Event::RuntimeUpgradeStarted(),
-						Event::MigrationStarted("migration1".into()),
-						Event::MigrationCompleted("migration1".into(), 1u32.into()),
-						Event::RuntimeUpgradeCompleted(100000001u32.into()), // includes reads/writes
+						Event::MigrationStarted {
+							migration_name: "migration1".into(),
+						},
+						Event::MigrationCompleted {
+							migration_name: "migration1".into(),
+							consumed_weight: 1u32.into(),
+						},
+						Event::RuntimeUpgradeCompleted {
+							weight: 100000001u32.into(),
+						}, // includes reads/writes
 					];
 					assert_eq!(events(), expected);
 
@@ -181,7 +190,9 @@ fn migration_should_only_be_invoked_once() {
 					);
 					expected.append(&mut vec![
 						Event::RuntimeUpgradeStarted(),
-						Event::RuntimeUpgradeCompleted(100000000u32.into()),
+						Event::RuntimeUpgradeCompleted {
+							weight: 100000000u32.into(),
+						},
 					]);
 					assert_eq!(events(), expected);
 

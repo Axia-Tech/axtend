@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Precompile to interact with pallet democracy through an evm precompile.
 
@@ -206,14 +206,14 @@ where
 	}
 
 	// This method is not yet implemented because it depends on
-	// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate
+	// https://github.com/axiatech/substrate/pull/9565 which has been merged into Substrate
 	// master, but is not on the release branches that we are following
 	fn ongoing_referendum_info(
 		_input: &mut EvmDataReader,
 		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
 		Err(gasometer
-			.revert("This method depends on https://github.com/paritytech/substrate/pull/9565"))
+			.revert("This method depends on https://github.com/axiatech/substrate/pull/9565"))
 		// let mut gasometer = Gasometer::new(target_gas);
 
 		// // Bound check
@@ -258,14 +258,14 @@ where
 	}
 
 	// This method is not yet implemented because it depends on
-	// https://github.com/paritytech/substrate/pull/9565 which has been merged into Substrate
+	// https://github.com/axiatech/substrate/pull/9565 which has been merged into Substrate
 	// master, but is not on the release branches that we are following
 	fn finished_referendum_info(
 		_input: &mut EvmDataReader,
 		gasometer: &mut Gasometer,
 	) -> EvmResult<PrecompileOutput> {
 		Err(gasometer
-			.revert("This method depends on https://github.com/paritytech/substrate/pull/9565"))
+			.revert("This method depends on https://github.com/axiatech/substrate/pull/9565"))
 	}
 
 	// The dispatchable wrappers are next. They dispatch a Substrate inner Call.

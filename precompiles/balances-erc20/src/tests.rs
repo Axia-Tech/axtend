@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 use std::{assert_matches::assert_matches, str::from_utf8};
 
@@ -351,7 +351,7 @@ fn transfer() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 195953756u64, // 1 weight => 1 gas in mock
+					cost: 159201756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -478,7 +478,7 @@ fn transfer_from() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 195953756u64, // 1 weight => 1 gas in mock
+					cost: 159201756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -628,7 +628,7 @@ fn transfer_from_self() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 195953756u64, // 1 weight => 1 gas in mock
+					cost: 159201756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::Precompile.into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -820,7 +820,9 @@ fn deposit(data: Vec<u8>) {
 			assert_eq!(
 				events(),
 				vec![
-					Event::System(frame_system::Event::NewAccount(Account::Precompile)),
+					Event::System(frame_system::Event::NewAccount {
+						account: Account::Precompile
+					}),
 					Event::Balances(pallet_balances::Event::Endowed {
 						account: Account::Precompile,
 						free_balance: 500

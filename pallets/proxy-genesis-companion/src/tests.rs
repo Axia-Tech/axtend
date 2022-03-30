@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Unit testing
 use crate::mock::{ExtBuilder, Proxy, Test};
@@ -54,8 +54,8 @@ fn non_empty_genesis_works() {
 }
 
 #[test]
-#[should_panic(expected = "Genesis proxy could not be added: Module \
-	{ index: 1, error: 2, message: Some(\"InsufficientBalance\") }")]
+#[should_panic(expected = "Genesis proxy could not be added: Module(ModuleError \
+	{ index: 1, error: 2, message: Some(\"InsufficientBalance\") })")]
 fn genesis_fails_if_balance_insufficient() {
 	ExtBuilder::default()
 		.with_proxies(vec![(1, 2)])

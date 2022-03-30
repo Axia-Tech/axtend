@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
 use super::*;
@@ -36,16 +36,16 @@ use sp_runtime::{
 };
 use xcm::latest::{
 	Error as XcmError,
-	Junction::{AccountKey20, GeneralIndex, PalletInstance, Parachain},
+	Junction::{AccountKey20, GeneralIndex, PalletInstance, Allychain},
 	Junctions, MultiAsset, MultiLocation, NetworkId, Result as XcmResult, SendResult, SendXcm, Xcm,
 };
 
-use xcm_builder::{AllowUnpaidExecutionFrom, FixedWeightBounds};
+use xcm_builder::FixedWeightBounds;
 
 use scale_info::TypeInfo;
 use xcm_executor::{
 	traits::{InvertLocation, TransactAsset, WeightTrader},
-	Assets, XcmExecutor,
+	Assets,
 };
 
 pub type AccountId = TestAccount;
@@ -68,11 +68,10 @@ construct_runtime!(
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
 		XcmTransactor: xcm_transactor::{Pallet, Call, Storage, Event<T>},
-		PolkadotXcm: pallet_xcm::{Pallet, Call, Event<T>, Origin},
 	}
 );
 
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
+// FRom https://github.com/PureStake/axtend/pull/518. Merge to common once is merged
 #[derive(
 	Eq,
 	PartialEq,
@@ -164,7 +163,7 @@ impl sp_runtime::traits::Convert<TestAccount, MultiLocation> for AccountIdToMult
 pub type AssetId = u128;
 
 parameter_types! {
-	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
+	pub AllychainId: cumulus_primitives_core::ParaId = 100.into();
 }
 
 parameter_types! {
@@ -200,6 +199,7 @@ impl frame_system::Config for Runtime {
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
 	type OnSetCode = ();
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -289,6 +289,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -321,8 +322,6 @@ impl SendXcm for DoNothingRouter {
 	}
 }
 
-pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
-
 pub struct DummyAssetTransactor;
 impl TransactAsset for DummyAssetTransactor {
 	fn deposit_asset(_what: &MultiAsset, _who: &MultiLocation) -> XcmResult {
@@ -350,44 +349,12 @@ impl InvertLocation for InvertNothing {
 	fn invert_location(_: &MultiLocation) -> sp_std::result::Result<MultiLocation, ()> {
 		Ok(MultiLocation::here())
 	}
+
+	fn ancestry() -> MultiLocation {
+		MultiLocation::here()
+	}
 }
 
-impl pallet_xcm::Config for Runtime {
-	// The config types here are entirely configurable, since the only one that is sorely needed
-	// is `XcmExecutor`, which will be used in unit tests located in xcm-executor.
-	type Event = Event;
-	type ExecuteXcmOrigin = ConvertOriginToLocal;
-	type LocationInverter = InvertNothing;
-	type SendXcmOrigin = ConvertOriginToLocal;
-	type Weigher = xcm_builder::FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type XcmRouter = DoNothingRouter;
-	type XcmExecuteFilter = frame_support::traits::Everything;
-	type XcmExecutor = xcm_executor::XcmExecutor<XcmConfig>;
-	type XcmTeleportFilter = frame_support::traits::Everything;
-	type XcmReserveTransferFilter = frame_support::traits::Everything;
-	type Origin = Origin;
-	type Call = Call;
-	const VERSION_DISCOVERY_QUEUE_SIZE: u32 = 100;
-	type AdvertisedXcmVersion = pallet_xcm::CurrentXcmVersion;
-}
-
-pub struct XcmConfig;
-impl xcm_executor::Config for XcmConfig {
-	type Call = Call;
-	type XcmSender = DoNothingRouter;
-	type AssetTransactor = DummyAssetTransactor;
-	type OriginConverter = pallet_xcm::XcmPassthrough<Origin>;
-	type IsReserve = ();
-	type IsTeleporter = ();
-	type LocationInverter = InvertNothing;
-	type Barrier = Barrier;
-	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
-	type Trader = DummyWeightTrader;
-	type ResponseHandler = ();
-	type SubscriptionService = ();
-	type AssetTrap = PolkadotXcm;
-	type AssetClaims = PolkadotXcm;
-}
 #[derive(Clone, Eq, Debug, PartialEq, Ord, PartialOrd, Encode, Decode, scale_info::TypeInfo)]
 pub enum CurrencyId {
 	SelfReserve,
@@ -395,17 +362,17 @@ pub enum CurrencyId {
 }
 
 parameter_types! {
-	pub Ancestry: MultiLocation = Parachain(ParachainId::get().into()).into();
+	pub Ancestry: MultiLocation = Allychain(AllychainId::get().into()).into();
 
 	pub const BaseXcmWeight: Weight = 1000;
-	pub const RelayNetwork: NetworkId = NetworkId::Polkadot;
+	pub const RelayNetwork: NetworkId = NetworkId::Axia;
 
-	pub SelfLocation: MultiLocation = (1, Junctions::X1(Parachain(ParachainId::get().into()))).into();
+	pub SelfLocation: MultiLocation = (1, Junctions::X1(Allychain(AllychainId::get().into()))).into();
 
 	pub SelfReserve: MultiLocation = (
 		1,
 		Junctions::X2(
-			Parachain(ParachainId::get().into()),
+			Allychain(AllychainId::get().into()),
 			PalletInstance(<Runtime as frame_system::Config>::PalletInfo::index::<Balances>().unwrap() as u8)
 		)).into();
 	pub MaxInstructions: u32 = 100;
@@ -420,13 +387,13 @@ impl xcm_transactor::Config for Runtime {
 	type CurrencyId = CurrencyId;
 	type AccountIdToMultiLocation = AccountIdToMultiLocation;
 	type CurrencyIdToMultiLocation = CurrencyIdToMultiLocation;
-	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type SelfLocation = SelfLocation;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call, MaxInstructions>;
 	type LocationInverter = InvertNothing;
 	type BaseXcmWeight = BaseXcmWeight;
 	type XcmSender = DoNothingRouter;
 	type AssetTransactor = DummyAssetTransactor;
+	type WeightInfo = ();
 }
 
 // We need to use the encoding from the relay mock runtime
@@ -521,7 +488,7 @@ impl sp_runtime::traits::Convert<CurrencyId, Option<MultiLocation>> for Currency
 				} else {
 					Some(MultiLocation::new(
 						1,
-						Junctions::X2(Parachain(2), GeneralIndex(asset)),
+						Junctions::X2(Allychain(2), GeneralIndex(asset)),
 					))
 				}
 			}

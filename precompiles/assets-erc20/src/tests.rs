@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 use frame_support::assert_ok;
 use std::{assert_matches::assert_matches, str::from_utf8};
@@ -290,7 +290,7 @@ fn approve() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 56999756u64,
+					cost: 30832756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
@@ -342,7 +342,7 @@ fn approve_saturating() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 56999756u64,
+					cost: 30832756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
@@ -521,7 +521,7 @@ fn transfer() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 83206756u64, // 1 weight => 1 gas in mock
+					cost: 44001756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -676,7 +676,7 @@ fn transfer_from() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 107172756u64, // 1 weight => 1 gas in mock
+					cost: 56268756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,
@@ -795,7 +795,7 @@ fn transfer_from_non_incremental_approval() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 56999756u64,
+					cost: 30832756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
@@ -829,7 +829,7 @@ fn transfer_from_non_incremental_approval() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 114357756u64,
+					cost: 62796756u64,
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_APPROVAL,
@@ -861,7 +861,7 @@ fn transfer_from_non_incremental_approval() {
 				Some(Err(PrecompileFailure::Revert { output, ..}))
 				if output == b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
 					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module { index: 2, error: 10, message: Some(\"Unapproved\") } }",
+					error: Module(ModuleError { index: 2, error: 10, message: Some(\"Unapproved\") }) }"
 			);
 		});
 }
@@ -920,7 +920,7 @@ fn transfer_from_above_allowance() {
 				Some(Err(PrecompileFailure::Revert { output, ..}))
 				if output == b"Dispatched call failed with error: DispatchErrorWithPostInfo { \
 					post_info: PostDispatchInfo { actual_weight: None, pays_fee: Pays::Yes }, \
-					error: Module { index: 2, error: 10, message: Some(\"Unapproved\") } }"
+					error: Module(ModuleError { index: 2, error: 10, message: Some(\"Unapproved\") }) }"
 			);
 		});
 }
@@ -965,7 +965,7 @@ fn transfer_from_self() {
 				Some(Ok(PrecompileOutput {
 					exit_status: ExitSucceed::Returned,
 					output: EvmDataWriter::new().write(true).build(),
-					cost: 83206756u64, // 1 weight => 1 gas in mock
+					cost: 44001756u64, // 1 weight => 1 gas in mock
 					logs: LogsBuilder::new(Account::AssetId(0u128).into())
 						.log3(
 							SELECTOR_LOG_TRANSFER,

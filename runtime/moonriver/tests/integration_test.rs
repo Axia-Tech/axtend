@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Moonriver Runtime Integration Tests
 
@@ -30,7 +30,7 @@ use frame_support::{
 	StorageHasher, Twox128,
 };
 use moonriver_runtime::{
-	BaseFee, BlockWeights, CurrencyId, PolkadotXcm, Precompiles, XTokens, XcmTransactor,
+	BaseFee, BlockWeights, CurrencyId, AxiaXcm, Precompiles, XTokens, XcmTransactor,
 };
 use nimbus_primitives::NimbusId;
 use pallet_evm::PrecompileSet;
@@ -41,11 +41,10 @@ use pallet_transaction_payment::Multiplier;
 use parity_scale_codec::Encode;
 use precompile_utils::{Address as EvmAddress, EvmDataWriter, LogsBuilder};
 use sha3::{Digest, Keccak256};
-use sp_core::Pair;
-use sp_core::{Public, H160, U256};
+use sp_core::{ByteArray, Pair, H160, U256};
 use sp_runtime::{
 	traits::{Convert, One},
-	DispatchError,
+	DispatchError, ModuleError,
 };
 use xcm::latest::prelude::*;
 use xcm::{VersionedMultiAsset, VersionedMultiAssets, VersionedMultiLocation};
@@ -62,25 +61,25 @@ fn verify_pallet_prefixes() {
 		// Compares the unhashed pallet prefix in the `StorageInstance` implementation by every
 		// storage item in the pallet P. This pallet prefix is used in conjunction with the
 		// item name to get the unique storage key: hash(PalletPrefix) + hash(StorageName)
-		// https://github.com/paritytech/substrate/blob/master/frame/support/procedural/src/pallet/
+		// https://github.com/axiatech/substrate/blob/master/frame/support/procedural/src/pallet/
 		// expand/storage.rs#L389-L401
 		assert_eq!(
 			<moonriver_runtime::Runtime as frame_system::Config>::PalletInfo::name::<P>(),
 			Some(name)
 		);
 	}
-	// TODO: use StorageInfoTrait from https://github.com/paritytech/substrate/pull/9246
-	// This is now available with polkadot-v0.9.9 dependencies
+	// TODO: use StorageInfoTrait from https://github.com/axiatech/substrate/pull/9246
+	// This is now available with axia-v0.9.9 dependencies
 	is_pallet_prefix::<moonriver_runtime::System>("System");
 	is_pallet_prefix::<moonriver_runtime::Utility>("Utility");
 	is_pallet_prefix::<moonriver_runtime::RandomnessCollectiveFlip>("RandomnessCollectiveFlip");
-	is_pallet_prefix::<moonriver_runtime::ParachainSystem>("ParachainSystem");
+	is_pallet_prefix::<moonriver_runtime::AllychainSystem>("AllychainSystem");
 	is_pallet_prefix::<moonriver_runtime::TransactionPayment>("TransactionPayment");
-	is_pallet_prefix::<moonriver_runtime::ParachainInfo>("ParachainInfo");
+	is_pallet_prefix::<moonriver_runtime::AllychainInfo>("AllychainInfo");
 	is_pallet_prefix::<moonriver_runtime::EthereumChainId>("EthereumChainId");
 	is_pallet_prefix::<moonriver_runtime::EVM>("EVM");
 	is_pallet_prefix::<moonriver_runtime::Ethereum>("Ethereum");
-	is_pallet_prefix::<moonriver_runtime::ParachainStaking>("ParachainStaking");
+	is_pallet_prefix::<moonriver_runtime::AllychainStaking>("AllychainStaking");
 	is_pallet_prefix::<moonriver_runtime::MaintenanceMode>("MaintenanceMode");
 	is_pallet_prefix::<moonriver_runtime::Scheduler>("Scheduler");
 	is_pallet_prefix::<moonriver_runtime::Democracy>("Democracy");
@@ -182,7 +181,7 @@ fn verify_pallet_prefixes() {
 			storage_name: b"MaintenanceMode".to_vec(),
 			prefix: prefix(b"MaintenanceMode", b"MaintenanceMode"),
 			max_values: Some(1),
-			max_size: Some(1),
+			max_size: None,
 		},]
 	);
 }
@@ -212,15 +211,15 @@ fn verify_pallet_indices() {
 	}
 	// System support
 	is_pallet_index::<moonriver_runtime::System>(0);
-	is_pallet_index::<moonriver_runtime::ParachainSystem>(1);
+	is_pallet_index::<moonriver_runtime::AllychainSystem>(1);
 	is_pallet_index::<moonriver_runtime::RandomnessCollectiveFlip>(2);
 	is_pallet_index::<moonriver_runtime::Timestamp>(3);
-	is_pallet_index::<moonriver_runtime::ParachainInfo>(4);
+	is_pallet_index::<moonriver_runtime::AllychainInfo>(4);
 	// Monetary
 	is_pallet_index::<moonriver_runtime::Balances>(10);
 	is_pallet_index::<moonriver_runtime::TransactionPayment>(11);
 	// Consensus support
-	is_pallet_index::<moonriver_runtime::ParachainStaking>(20);
+	is_pallet_index::<moonriver_runtime::AllychainStaking>(20);
 	is_pallet_index::<moonriver_runtime::AuthorInherent>(21);
 	is_pallet_index::<moonriver_runtime::AuthorFilter>(22);
 	is_pallet_index::<moonriver_runtime::AuthorMapping>(23);
@@ -276,36 +275,36 @@ fn join_collator_candidates() {
 		.build()
 		.execute_with(|| {
 			assert_noop!(
-				ParachainStaking::join_candidates(
+				AllychainStaking::join_candidates(
 					origin_of(AccountId::from(ALICE)),
 					1_000 * MOVR,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::CandidateExists
+				allychain_staking::Error::<Runtime>::CandidateExists
 			);
 			assert_noop!(
-				ParachainStaking::join_candidates(
+				AllychainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
 					1_000 * MOVR,
 					2u32
 				),
-				parachain_staking::Error::<Runtime>::DelegatorExists
+				allychain_staking::Error::<Runtime>::DelegatorExists
 			);
 			assert!(System::events().is_empty());
-			assert_ok!(ParachainStaking::join_candidates(
+			assert_ok!(AllychainStaking::join_candidates(
 				origin_of(AccountId::from(DAVE)),
 				1_000 * MOVR,
 				2u32
 			));
 			assert_eq!(
 				last_event(),
-				Event::ParachainStaking(parachain_staking::Event::JoinedCollatorCandidates(
-					AccountId::from(DAVE),
-					1_000 * MOVR,
-					3_100 * MOVR
-				))
+				Event::AllychainStaking(allychain_staking::Event::JoinedCollatorCandidates {
+					account: AccountId::from(DAVE),
+					amount_locked: 1_000 * MOVR,
+					new_total_amt_locked: 3_100 * MOVR
+				})
 			);
-			let candidates = ParachainStaking::candidate_pool();
+			let candidates = AllychainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(ALICE));
 			assert_eq!(candidates.0[0].amount, 1_050 * MOVR);
 			assert_eq!(candidates.0[1].owner, AccountId::from(BOB));
@@ -323,16 +322,16 @@ fn transfer_through_evm_to_stake() {
 		.execute_with(|| {
 			// Charlie has no balance => fails to stake
 			assert_noop!(
-				ParachainStaking::join_candidates(
+				AllychainStaking::join_candidates(
 					origin_of(AccountId::from(CHARLIE)),
 					1_000 * MOVR,
 					2u32
 				),
-				DispatchError::Module {
+				DispatchError::Module(ModuleError {
 					index: 10,
 					error: 2,
 					message: Some("InsufficientBalance")
-				}
+				})
 			);
 			// Alice transfer from free balance 2000 MOVR to Bob
 			assert_ok!(Balances::transfer(
@@ -343,7 +342,7 @@ fn transfer_through_evm_to_stake() {
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 2_000 * MOVR);
 
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 			// Bob transfers 1000 MOVR to Charlie via EVM
 			assert_ok!(Call::EVM(pallet_evm::Call::<Runtime>::call {
 				source: H160::from(BOB),
@@ -363,12 +362,12 @@ fn transfer_through_evm_to_stake() {
 			);
 
 			// Charlie can stake now
-			assert_ok!(ParachainStaking::join_candidates(
+			assert_ok!(AllychainStaking::join_candidates(
 				origin_of(AccountId::from(CHARLIE)),
 				1_000 * MOVR,
 				2u32,
 			),);
-			let candidates = ParachainStaking::candidate_pool();
+			let candidates = AllychainStaking::candidate_pool();
 			assert_eq!(candidates.0[0].owner, AccountId::from(CHARLIE));
 			assert_eq!(candidates.0[0].amount, 1_000 * MOVR);
 		});
@@ -389,19 +388,19 @@ fn reward_block_authors() {
 			500 * MOVR,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
+			set_allychain_inherent_data();
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -415,7 +414,7 @@ fn reward_block_authors() {
 }
 
 #[test]
-fn reward_block_authors_with_parachain_bond_reserved() {
+fn reward_block_authors_with_allychain_bond_reserved() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			// Alice gets 100 extra tokens for her mapping deposit
@@ -430,24 +429,24 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 			500 * MOVR,
 		)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
-			assert_ok!(ParachainStaking::set_parachain_bond_account(
+			set_allychain_inherent_data();
+			assert_ok!(AllychainStaking::set_allychain_bond_account(
 				root_origin(),
 				AccountId::from(CHARLIE),
 			),);
 			for x in 2..1199 {
-				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+				run_to_block(x, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			}
 			// no rewards doled out yet
 			assert_eq!(Balances::free_balance(AccountId::from(ALICE)), 1_000 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(BOB)), 500 * MOVR,);
 			assert_eq!(Balances::free_balance(AccountId::from(CHARLIE)), MOVR,);
-			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			run_to_block(1200, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			// rewards minted and distributed
 			assert_eq!(
 				Balances::free_balance(AccountId::from(ALICE)),
@@ -457,7 +456,7 @@ fn reward_block_authors_with_parachain_bond_reserved() {
 				Balances::free_balance(AccountId::from(BOB)),
 				525841666640825000000,
 			);
-			// 30% reserved for parachain bond
+			// 30% reserved for allychain bond
 			assert_eq!(
 				Balances::free_balance(AccountId::from(CHARLIE)),
 				47515000000000000000,
@@ -474,14 +473,14 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
 		.build()
 		.execute_with(|| {
-			// set parachain inherent data
-			set_parachain_inherent_data();
+			// set allychain inherent data
+			set_allychain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 48 * WEEKS;
@@ -531,11 +530,11 @@ fn initialize_crowdloan_addresses_with_batch_and_pay() {
 			.dispatch(root_origin()));
 			let expected_fail = Event::Utility(pallet_utility::Event::BatchInterrupted {
 				index: 0,
-				error: DispatchError::Module {
+				error: DispatchError::Module(ModuleError {
 					index: 90,
 					error: 8,
 					message: None,
-				},
+				}),
 			});
 			assert_eq!(last_event(), expected_fail);
 			// Claim 1 block.
@@ -582,14 +581,14 @@ fn initialize_crowdloan_address_and_change_with_relay_key_sig() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
 		.build()
 		.execute_with(|| {
-			// set parachain inherent data
-			set_parachain_inherent_data();
+			// set allychain inherent data
+			set_allychain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -685,14 +684,14 @@ fn claim_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
 		.build()
 		.execute_with(|| {
-			// set parachain inherent data
-			set_parachain_inherent_data();
+			// set allychain inherent data
+			set_allychain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -738,7 +737,7 @@ fn claim_via_precompile() {
 
 			// Alice uses the crowdloan precompile to claim through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 
 			// Construct the call data (selector, amount)
 			let mut call_data = Vec::<u8>::from([0u8; 4]);
@@ -778,14 +777,14 @@ fn is_contributor_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
 		.build()
 		.execute_with(|| {
-			// set parachain inherent data
-			set_parachain_inherent_data();
+			// set allychain inherent data
+			set_allychain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -847,7 +846,7 @@ fn is_contributor_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -880,7 +879,7 @@ fn is_contributor_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -898,14 +897,14 @@ fn reward_info_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
 		.build()
 		.execute_with(|| {
-			// set parachain inherent data
-			set_parachain_inherent_data();
+			// set allychain inherent data
+			set_allychain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -971,7 +970,7 @@ fn reward_info_via_precompile() {
 						// This context copied from Sacrifice tests, it's not great.
 						address: Default::default(),
 						caller: Default::default(),
-						apparent_value: From::from(0),
+						apparent_value: U256::zero(),
 					},
 					false,
 				),
@@ -989,14 +988,14 @@ fn update_reward_address_via_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_crowdloan_fund(3_000_000 * MOVR)
 		.build()
 		.execute_with(|| {
-			// set parachain inherent data
-			set_parachain_inherent_data();
+			// set allychain inherent data
+			set_allychain_inherent_data();
 			let init_block = CrowdloanRewards::init_vesting_block();
 			// This matches the previous vesting
 			let end_block = init_block + 4 * WEEKS;
@@ -1034,7 +1033,7 @@ fn update_reward_address_via_precompile() {
 
 			// Charlie uses the crowdloan precompile to update address through the EVM
 			let gas_limit = 100000u64;
-			let gas_price: U256 = 1_000_000_000.into();
+			let gas_price: U256 = 1_000_000_000u64.into();
 
 			// Construct the input data to check if Bob is a contributor
 			let mut call_data = Vec::<u8>::from([0u8; 36]);
@@ -1268,7 +1267,7 @@ fn root_can_change_default_xcm_vers() {
 			);
 
 			// Root sets the defaultXcm
-			assert_ok!(PolkadotXcm::force_default_xcm_version(
+			assert_ok!(AxiaXcm::force_default_xcm_version(
 				root_origin(),
 				Some(2)
 			));
@@ -1379,7 +1378,7 @@ fn asset_erc20_precompiles_transfer() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 25084u64,
+				cost: 23516u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1453,7 +1452,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 15035u64,
+				cost: 13989u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_APPROVAL,
@@ -1487,7 +1486,7 @@ fn asset_erc20_precompiles_approve() {
 			let expected_result = Some(Ok(PrecompileOutput {
 				exit_status: ExitSucceed::Returned,
 				output: EvmDataWriter::new().write(true).build(),
-				cost: 31042u64,
+				cost: 29006u64,
 				logs: LogsBuilder::new(asset_precompile_address)
 					.log3(
 						SELECTOR_LOG_TRANSFER,
@@ -1684,7 +1683,7 @@ fn make_sure_movr_cannot_be_transferred_precompile() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -1720,7 +1719,7 @@ fn make_sure_movr_cannot_be_transferred() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -1746,7 +1745,7 @@ fn make_sure_movr_cannot_be_transferred() {
 }
 
 #[test]
-fn make_sure_polkadot_xcm_cannot_be_called() {
+fn make_sure_axia_xcm_cannot_be_called() {
 	ExtBuilder::default()
 		.with_balances(vec![
 			(AccountId::from(ALICE), 2_000 * MOVR),
@@ -1754,7 +1753,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 		])
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.build()
@@ -1773,7 +1772,7 @@ fn make_sure_polkadot_xcm_cannot_be_called() {
 			.to_vec()
 			.into();
 			assert_noop!(
-				Call::PolkadotXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
+				Call::AxiaXcm(pallet_xcm::Call::<Runtime>::reserve_transfer_assets {
 					dest: Box::new(VersionedMultiLocation::V1(dest.clone())),
 					beneficiary: Box::new(VersionedMultiLocation::V1(dest)),
 					assets: Box::new(VersionedMultiAssets::V1(multiassets)),

@@ -15,7 +15,7 @@ jobs:
     runs-on: self-hosted
     strategy:
       matrix:
-        cpu: ["", "skylake", "znver3"]
+        cpu: ["", "skylake"]
     env:
       RUSTFLAGS: "-C codegen-units=1 -C target-cpu=${{ matrix.cpu }}"
       CARGO_PROFILE_RELEASE_LTO: "true"
@@ -28,24 +28,24 @@ jobs:
         run: rustup show
       - name: Build Node
         run: cargo build --release --all
-      - name: Save parachain binary
+      - name: Save allychain binary
         if: ${{ matrix.cpu == '' }}
         run: |
           mkdir -p build
-          cp target/release/moonbeam build/moonbeam
-      - name: Save parachain custom binary
+          cp target/release/axtend build/axtend
+      - name: Save allychain custom binary
         if: ${{ matrix.cpu != '' }}
         run: |
           mkdir -p build
-          cp target/release/moonbeam build/moonbeam-${{matrix.cpu}}
+          cp target/release/axtend build/axtend-${{matrix.cpu}}
       - name: Upload binary
         uses: actions/upload-artifact@v2
         with:
-          name: moonbeam
+          name: axtend
           path: build
 
   ####### Prepare the release draft #######
-  docker-moonbeam:
+  docker-axtend:
     runs-on: ubuntu-latest
     needs: ["build-binary"]
     steps:
@@ -55,12 +55,12 @@ jobs:
           ref: ${{ github.event.inputs.sha }}
       - uses: actions/download-artifact@v2
         with:
-          name: moonbeam
+          name: axtend
           path: build
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=purestake/moonbeam
+          DOCKER_IMAGE=purestake/axtend
           SHA8="$(git log -1 --format="%H" | cut -c1-8)"
           TAGS="${DOCKER_IMAGE}:sha-${SHA8}-opt"
           echo ::set-output name=tags::${TAGS}
@@ -78,12 +78,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push moonbeam
+      - name: Build and push axtend
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/moonbeam.Dockerfile
+          file: ./docker/axtend.Dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ steps.prep.outputs.tags }}

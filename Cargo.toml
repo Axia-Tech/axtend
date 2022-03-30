@@ -1,5 +1,5 @@
 [workspace]
-exclude = [ "bin/utils/moonkey" ]
+exclude = ["bin/utils/moonkey"]
 members = [
 	"bin/utils/moonkey",
 	"client/rpc/finality",
@@ -12,15 +12,15 @@ members = [
 	"pallets/proxy-genesis-companion",
 	"precompiles/utils/macro",
 	"runtime/moonbase",
-	"runtime/moonbeam",
+	"runtime/axtend",
 	"runtime/moonriver",
 ]
 
 [patch.crates-io]
-ethereum = { git = "https://github.com/purestake/ethereum", branch = "tgm-0.11.1-typeinfo-patch" }
-evm = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.13" }
-evm-gasometer = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.13" }
-evm-runtime = { git = "https://github.com/purestake/evm", branch = "moonbeam-polkadot-v0.9.13" }
+ethereum = { git = "https://github.com/axia-tech/ethereum", branch = "ethereum" }
+evm = { git = "https://github.com/axia-tech/evm", branch = "evm" }
+evm-gasometer = { git = "https://github.com/axia-tech/evm", branch = "evm" }
+evm-runtime = { git = "https://github.com/axia-tech/evm", branch = "evm" }
 
 [profile.release]
 panic = "unwind"

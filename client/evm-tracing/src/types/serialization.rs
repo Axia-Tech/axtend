@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Provide serialization functions for various types and formats.
 
@@ -26,12 +26,16 @@ pub fn seq_h256_serialize<S>(data: &Option<Vec<H256>>, serializer: S) -> Result<
 where
 	S: Serializer,
 {
-	let d = data.clone().unwrap();
-	let mut seq = serializer.serialize_seq(Some(d.len()))?;
-	for h in d {
-		seq.serialize_element(&format!("{:x}", h))?;
+	if let Some(vec) = data {
+		let mut seq = serializer.serialize_seq(Some(vec.len()))?;
+		for hash in vec {
+			seq.serialize_element(&format!("{:x}", hash))?;
+		}
+		seq.end()
+	} else {
+		let seq = serializer.serialize_seq(Some(0))?;
+		seq.end()
 	}
-	seq.end()
 }
 
 pub fn bytes_0x_serialize<S>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error>

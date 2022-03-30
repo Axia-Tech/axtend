@@ -1,18 +1,18 @@
 // Copyright 2019-2020 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! # Migration Pallet
 
@@ -43,7 +43,7 @@ pub trait Migration {
 	///
 	/// Currently there is no way to migrate across blocks, so this method must (1) perform its full
 	/// migration and (2) not produce a block that has gone over-weight. Not meeting these strict
-	/// constraints will lead to a bricked chain upon a runtime upgrade because the parachain will
+	/// constraints will lead to a bricked chain upon a runtime upgrade because the allychain will
 	/// not be able to produce a block that the relay chain will accept.
 	fn migrate(&self, available_weight: Weight) -> Weight;
 
@@ -85,6 +85,7 @@ pub mod pallet {
 
 	/// Pallet for migrations
 	#[pallet::pallet]
+	#[pallet::without_storage_info]
 	pub struct Pallet<T>(PhantomData<T>);
 
 	/// Configuration trait of this pallet.
@@ -99,10 +100,17 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(crate) fn deposit_event)]
 	pub enum Event<T: Config> {
+		/// Runtime upgrade started
 		RuntimeUpgradeStarted(),
-		RuntimeUpgradeCompleted(Weight),
-		MigrationStarted(Vec<u8>),
-		MigrationCompleted(Vec<u8>, Weight),
+		/// Runtime upgrade completed
+		RuntimeUpgradeCompleted { weight: Weight },
+		/// Migration started
+		MigrationStarted { migration_name: Vec<u8> },
+		/// Migration completed
+		MigrationCompleted {
+			migration_name: Vec<u8>,
+			consumed_weight: Weight,
+		},
 	}
 
 	#[pallet::hooks]
@@ -119,10 +127,12 @@ pub mod pallet {
 
 			// start by flagging that we are not fully upgraded
 			<FullyUpgraded<T>>::put(false);
-			weight += T::DbWeight::get().writes(1);
+			weight = weight.saturating_add(T::DbWeight::get().writes(1));
 			Self::deposit_event(Event::RuntimeUpgradeStarted());
 
-			weight += perform_runtime_upgrades::<T>(available_weight.saturating_sub(weight));
+			weight = weight.saturating_add(perform_runtime_upgrades::<T>(
+				available_weight.saturating_sub(weight),
+			));
 
 			if !<FullyUpgraded<T>>::get() {
 				log::error!(
@@ -263,7 +273,9 @@ pub mod pallet {
 			let migration_done = <MigrationState<T>>::get(migration_name_as_bytes);
 
 			if !migration_done {
-				<Pallet<T>>::deposit_event(Event::MigrationStarted(migration_name_as_bytes.into()));
+				<Pallet<T>>::deposit_event(Event::MigrationStarted {
+					migration_name: migration_name_as_bytes.into(),
+				});
 
 				// when we go overweight, leave a warning... there's nothing we can really do about
 				// this scenario other than hope that the block is actually accepted.
@@ -286,10 +298,10 @@ pub mod pallet {
 				);
 
 				let consumed_weight = migration.migrate(available_for_step);
-				<Pallet<T>>::deposit_event(Event::MigrationCompleted(
-					migration_name_as_bytes.into(),
-					consumed_weight,
-				));
+				<Pallet<T>>::deposit_event(Event::MigrationCompleted {
+					migration_name: migration_name_as_bytes.into(),
+					consumed_weight: consumed_weight,
+				});
 				<MigrationState<T>>::insert(migration_name_as_bytes, true);
 
 				weight = weight.saturating_add(consumed_weight);
@@ -305,8 +317,8 @@ pub mod pallet {
 		}
 
 		<FullyUpgraded<T>>::put(true);
-		weight += T::DbWeight::get().writes(1);
-		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted(weight));
+		weight = weight.saturating_add(T::DbWeight::get().writes(1));
+		<Pallet<T>>::deposit_event(Event::RuntimeUpgradeCompleted { weight });
 
 		weight
 	}

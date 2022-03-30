@@ -27,8 +27,8 @@ jobs:
       image_exists: ${{ steps.check-check-docker-image.outputs.image_exists }}
       sha: ${{ steps.get-sha.outputs.sha }}
       sha8: ${{ steps.get-sha.outputs.sha8 }}
-      polkadot_repo: ${{ steps.get-sha.outputs.polkadot_repo }}
-      polkadot_commit: ${{ steps.get-sha.outputs.polkadot_commit }}
+      axia_repo: ${{ steps.get-sha.outputs.axia_repo }}
+      axia_commit: ${{ steps.get-sha.outputs.axia_commit }}
     steps:
       - name: Check git ref
         id: check-git-ref
@@ -54,14 +54,14 @@ jobs:
         run: |
           echo ::set-output name=sha::$(git log -1 --format="%H")
           echo ::set-output name=sha8::$(git log -1 --format="%H" | cut -c1-8)
-          echo ::set-output name=polkadot_repo::$(egrep -o 'https.*/polkadot' Cargo.lock | head -1)
-          echo ::set-output name=polkadot_commit::$(egrep -o '/polkadot.*#([^\"]*)' Cargo.lock | \
+          echo ::set-output name=axia_repo::$(egrep -o 'https.*/axia' Cargo.lock | head -1)
+          echo ::set-output name=axia_commit::$(egrep -o '/axia.*#([^\"]*)' Cargo.lock | \
             head -1 | sed 's/.*#//' |  cut -c1-8)
       - name: Check existing docker image
         id: check-docker-image
         run: |
           TAG=sha-${{ steps.get-sha.outputs.sha8 }}
-          echo ::set-output name=image_exists::$(docker manifest inspect purestake/moonbeam:$TAG > /dev/null && echo "true" || echo "false")
+          echo ::set-output name=image_exists::$(docker manifest inspect purestake/axtend:$TAG > /dev/null && echo "true" || echo "false")
       - name: Display variables
         run: |
           echo git_ref: ${{ steps.check-git-ref.outputs.git_ref }}
@@ -116,7 +116,7 @@ jobs:
           tar xvf ec-linux-amd64.tar.gz && \
           chmod +x bin/ec-linux-amd64
       - name: Check files
-        run: /tmp/bin/ec-linux-amd64
+        run: /tmp/bin/ec-linux-amd64 --exclude "typescript-api\/src\/moon(?:base|beam|river)\/interfaces\/lookup\.ts"
 
   check-prettier:
     name: "Check with Prettier"
@@ -166,12 +166,12 @@ jobs:
       - name: Format code with rustfmt
         run: cargo fmt -- --check
 
-  ####### Preparing polkadot binary for parachain tests #######
+  ####### Preparing axia binary for allychain tests #######
 
-  prepare-polkadot:
+  prepare-axia:
     runs-on: self-hosted
     needs: ["set-tags"]
-    if: github.repository == 'purestake/moonbeam'
+    if: github.repository == 'purestake/axtend'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -182,20 +182,33 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Check & build polkadot docker image
+      - name: Check & build axia docker image
         run: |
-          POLKADOT_REPO=${{ needs.set-tags.outputs.polkadot_repo }}
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
-          POLKADOT_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
+          AXIA_REPO=${{ needs.set-tags.outputs.axia_repo }}
+          AXIA_COMMIT=${{ needs.set-tags.outputs.axia_commit }}
+          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$AXIA_COMMIT"
+          AXIA_EXISTS=$(docker manifest inspect $DOCKER_TAG > /dev/null && \
             echo "true" || echo "false")
-          if [[ "$POLKADOT_EXISTS" == "false" ]]; then
-            # $POLKADOT_COMMIT and $POLKADOT_REPO is used to build the relay image
+          if [[ "$AXIA_EXISTS" == "false" ]]; then
+            # $AXIA_COMMIT and $AXIA_REPO is used to build the relay image
             ./scripts/build-alphanet-relay-image.sh
             docker push $DOCKER_TAG
           fi
 
   ####### Building and Testing binaries #######
+
+  cargo-clippy:
+    runs-on: self-hosted
+    needs: ["set-tags"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ needs.set-tags.outputs.git_ref }}
+      - name: Setup Rust toolchain
+        run: rustup show
+      - name: Clippy
+        run: SKIP_WASM_BUILD=1 env -u RUSTFLAGS cargo clippy
 
   build:
     runs-on: self-hosted
@@ -203,7 +216,7 @@ jobs:
     env:
       CARGO_SCCACHE_COMMIT: 90e1dc81
       RUSTFLAGS: "-C opt-level=3 -D warnings"
-      # MOONBEAM_LOG: info
+      # AXTEND_LOG: info
       # DEBUG: "test*"
     outputs:
       RUSTC: ${{ steps.get-rust-versions.outputs.rustc }}
@@ -247,7 +260,7 @@ jobs:
       - name: Verify node version
         run: |
           GIT_COMMIT=`git log -1 --format="%H" | cut -c1-7`
-          MB_VERSION=`./target/release/moonbeam --version`
+          MB_VERSION=`./target/release/axtend --version`
           echo "Checking $MB_VERSION contains $GIT_COMMIT"
           echo "$MB_VERSION" | grep $GIT_COMMIT
       - name: Unit tests
@@ -275,21 +288,26 @@ jobs:
             echo $DIFF_INDEX | grep Cargo.lock
             false
           fi
-      - name: Check with Clippy
-        env:
-          RUSTFLAGS: "" # override RUSTFLAGS to disable option -D warnings
-        run: cargo clippy --release --workspace
       - name: Ensure benchmarking compiles
         run: cargo check --release --features=runtime-benchmarks
-      - name: Save moonbeam binary
+      - name: Save axtend binary
         run: |
           mkdir -p build
-          cp target/release/moonbeam build/moonbeam;
+          cp target/release/axtend build/axtend;
       - name: Upload binary
         uses: actions/upload-artifact@v2
         with:
-          name: moonbeam
+          name: axtend
           path: build
+      - name: Save runtime wasm
+        run: |
+          mkdir -p runtimes
+          cp target/release/wbuild/moon*/moon*_runtime.compact.compressed.wasm runtimes/;
+      - name: Upload runtimes
+        uses: actions/upload-artifact@v2
+        with:
+          name: runtimes
+          path: runtimes
 
   typescript-tests:
     runs-on: self-hosted
@@ -301,7 +319,7 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v2
         with:
-          name: moonbeam
+          name: axtend
           path: build
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
@@ -309,10 +327,10 @@ jobs:
           node-version: 14.x
       - name: Typescript integration tests (against dev service)
         env:
-          BINARY_PATH: ../build/moonbeam
+          BINARY_PATH: ../build/axtend
         run: |
-          chmod uog+x build/moonbeam
-          cd moonbeam-types-bundle
+          chmod uog+x build/axtend
+          cd axtend-types-bundle
           npm install
           npm run build
           cd ../tests
@@ -355,7 +373,7 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v2
         with:
-          name: moonbeam
+          name: axtend
           path: build
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
@@ -368,13 +386,13 @@ jobs:
           mv build/wasm/moonbase-runtime-local-substitute-tracing.wasm tests/moonbase-overrides/
       - name: Typescript tracing tests (against dev service)
         env:
-          BINARY_PATH: ../build/moonbeam
+          BINARY_PATH: ../build/axtend
           ETHAPI_CMD: --ethapi=txpool,debug,trace
           FORCE_WASM_EXECUTION: true
           WASM_RUNTIME_OVERRIDES: moonbase-overrides
         run: |
-          chmod uog+x build/moonbeam
-          cd moonbeam-types-bundle
+          chmod uog+x build/axtend
+          cd axtend-types-bundle
           npm install
           npm run build
           cd ../tests
@@ -383,22 +401,27 @@ jobs:
 
   typescript-para-tests:
     runs-on: self-hosted
-    needs: ["set-tags", "build", "prepare-polkadot"]
+    needs: ["set-tags", "build", "prepare-axia"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           ref: ${{ needs.set-tags.outputs.git_ref }}
+          fetch-depth: 0
       - uses: actions/download-artifact@v2
         with:
-          name: moonbeam
+          name: axtend
           path: build
-      - name: Retrieve polkadot
+      - uses: actions/download-artifact@v2
+        with:
+          name: runtimes
+          path: tests/runtimes
+      - name: Retrieve axia
         run: |
-          POLKADOT_COMMIT=${{ needs.set-tags.outputs.polkadot_commit }}
-          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$POLKADOT_COMMIT"
+          AXIA_COMMIT=${{ needs.set-tags.outputs.axia_commit }}
+          DOCKER_TAG="purestake/moonbase-relay-testnet:sha-$AXIA_COMMIT"
           docker create -ti --name dummy $DOCKER_TAG bash
-          docker cp dummy:/usr/local/bin/polkadot build/polkadot
+          docker cp dummy:/usr/local/bin/axia build/axia
           docker rm -f dummy
       - name: Use Node.js 14.x
         uses: actions/setup-node@v2
@@ -406,21 +429,23 @@ jobs:
           node-version: 14.x
       - name: Typescript integration tests (against dev service)
         env:
-          BINARY_PATH: ../build/moonbeam
-          RELAY_BINARY_PATH: ../build/polkadot
+          OVERRIDE_RUNTIME_PATH: ./runtimes
+          BINARY_PATH: ../build/axtend
+          AXTEND_LOG: info
+          RELAY_BINARY_PATH: ../build/axia
         run: |
-          chmod uog+x build/polkadot
-          chmod uog+x build/moonbeam
-          cd moonbeam-types-bundle
+          chmod uog+x build/axia
+          chmod uog+x build/axtend
+          cd axtend-types-bundle
           npm install
           cd ../tests
           npm install
-          node_modules/.bin/mocha --parallel -j 4 -r ts-node/register 'para-tests/**/test-*.ts'
+          node_modules/.bin/mocha -r ts-node/register 'para-tests/**/test-*.ts'
 
-  docker-parachain:
+  docker-allychain:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists }} == false && github.repository == 'purestake/moonbeam'
+    if: ${{ needs.set-tags.outputs.image_exists }} == false && github.repository == 'purestake/axtend'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -428,12 +453,12 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v2
         with:
-          name: moonbeam
+          name: axtend
           path: build
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=purestake/moonbase-parachain
+          DOCKER_IMAGE=purestake/moonbase-allychain
           TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
@@ -450,12 +475,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push parachain
+      - name: Build and push allychain
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/moonbase-parachain.Dockerfile
+          file: ./docker/moonbase-allychain.Dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ steps.prep.outputs.tags }}
@@ -468,10 +493,10 @@ jobs:
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.licenses=${{ github.event.repository.license.spdx_id }}
 
-  docker-moonbeam:
+  docker-axtend:
     runs-on: ubuntu-latest
     needs: ["set-tags", "build"]
-    if: ${{ needs.set-tags.outputs.image_exists }} == false && github.repository == 'purestake/moonbeam'
+    if: ${{ needs.set-tags.outputs.image_exists }} == false && github.repository == 'purestake/axtend'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -479,12 +504,12 @@ jobs:
           ref: ${{ needs.set-tags.outputs.git_ref }}
       - uses: actions/download-artifact@v2
         with:
-          name: moonbeam
+          name: axtend
           path: build
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=purestake/moonbeam
+          DOCKER_IMAGE=purestake/axtend
           TAGS="${DOCKER_IMAGE}:sha-${{ needs.set-tags.outputs.sha8 }}"
           echo ::set-output name=tags::${TAGS}
           echo ::set-output name=created::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
@@ -501,12 +526,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Build and push moonbeam
+      - name: Build and push axtend
         id: docker_build
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/moonbeam.Dockerfile
+          file: ./docker/axtend.Dockerfile
           platforms: linux/amd64
           push: true
           tags: ${{ steps.prep.outputs.tags }}

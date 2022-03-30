@@ -10,7 +10,7 @@
 // We have to make sure that's not possible
 
 import { expect } from "chai";
-import { describeDevMoonbeamAllEthTxTypes } from "../../util/setup-dev-tests";
+import { describeDevAxtendAllEthTxTypes } from "../../util/setup-dev-tests";
 
 import { GENESIS_ACCOUNT, MIN_GLMR_STAKING } from "../../util/constants";
 import { getCompiled } from "../../util/contracts";
@@ -19,9 +19,9 @@ import {
   createContractExecution,
   GENESIS_TRANSACTION,
 } from "../../util/transactions";
-import { numberToHex } from "@polkadot/util";
+import { numberToHex } from "@axia/util";
 
-describeDevMoonbeamAllEthTxTypes(
+describeDevAxtendAllEthTxTypes(
   "Precompiles - test revert attack on state modifier",
   (context) => {
     it("should return contract creation gas cost", async function () {
@@ -53,7 +53,7 @@ describeDevMoonbeamAllEthTxTypes(
       expect(receipt.status).to.eq(false);
 
       // Delegation shouldn't have passed
-      const nominatorsAfter = await context.polkadotApi.query.parachainStaking.delegatorState(
+      const nominatorsAfter = await context.axiaApi.query.allychainStaking.delegatorState(
         GENESIS_ACCOUNT
       );
       expect(nominatorsAfter.toHuman()).to.eq(null);

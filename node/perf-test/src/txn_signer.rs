@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 use sha3::{Digest, Keccak256};
 use sp_core::{H256, U256};
@@ -57,7 +57,7 @@ impl UnsignedTransaction {
 		let msg = libsecp256k1::Message::parse(hash.as_fixed_bytes());
 		let s = libsecp256k1::sign(
 			&msg,
-			&libsecp256k1::SecretKey::parse_slice(&key[..]).unwrap(),
+			&libsecp256k1::SecretKey::parse(&key.0).expect("invalid secret key"),
 		);
 		let sig = s.0.serialize();
 
@@ -66,7 +66,7 @@ impl UnsignedTransaction {
 			H256::from_slice(&sig[0..32]),
 			H256::from_slice(&sig[32..64]),
 		)
-		.unwrap();
+		.expect("invalid transaction signature");
 
 		Transaction {
 			nonce: self.nonce,

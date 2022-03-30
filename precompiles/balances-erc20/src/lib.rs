@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Precompile to interact with pallet_balances instances using the ERC20 interface standard.
 
@@ -69,35 +69,35 @@ pub trait InstanceToPrefix {
 
 // We use a macro to implement the trait for () and the 16 substrate Instance.
 macro_rules! impl_prefix {
-	($instance:ty, $name:literal) => {
-		// Generate unique UUID to have unique module names.
-		gensym::gensym! { _impl_prefix!{ $instance, $name }}
-	};
-}
+	($instance:ident, $name:literal) => {
+		// Using `paste!` we generate a dedicated module to avoid collisions
+		// between each instance `Approves` struct.
+		paste::paste! {
+			mod [<_impl_prefix_ $instance:snake>] {
+				use super::*;
 
-macro_rules! _impl_prefix {
-	($module:ident, $instance:ty, $name:literal) => {
-		mod $module {
-			use super::*;
+				pub struct Approves;
 
-			pub struct Approves;
+				impl StorageInstance for Approves {
+					const STORAGE_PREFIX: &'static str = "Approves";
 
-			impl StorageInstance for Approves {
-				const STORAGE_PREFIX: &'static str = "Approves";
-
-				fn pallet_prefix() -> &'static str {
-					$name
+					fn pallet_prefix() -> &'static str {
+						$name
+					}
 				}
-			}
 
-			impl InstanceToPrefix for $instance {
-				type ApprovesPrefix = Approves;
+				impl InstanceToPrefix for $instance {
+					type ApprovesPrefix = Approves;
+				}
 			}
 		}
 	};
 }
 
-impl_prefix!((), "Erc20Instance0Balances");
+// Since the macro expect a `ident` to be used with `paste!` we cannot provide `()` directly.
+type Instance0 = ();
+
+impl_prefix!(Instance0, "Erc20Instance0Balances");
 impl_prefix!(Instance1, "Erc20Instance1Balances");
 impl_prefix!(Instance2, "Erc20Instance2Balances");
 impl_prefix!(Instance3, "Erc20Instance3Balances");

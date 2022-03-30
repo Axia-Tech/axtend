@@ -1,24 +1,24 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! An example of doing some integration testing against the complete node in Rust
 //! This approach is similar to our current typescript tests and is inspired by
-//! https://github.com/paritytech/cumulus/blob/master/rococo-parachains/tests/purge_chain_works.rs
+//! https://github.com/axiatech/cumulus/blob/master/betanet-allychains/tests/purge_chain_works.rs
 //! However Basti seems dissatisfied with this approach, for reasons I don't fully understand.
-//! https://github.com/paritytech/cumulus/pull/306#discussion_r584166203
+//! https://github.com/axiatech/cumulus/pull/306#discussion_r584166203
 
 use assert_cmd::cargo::cargo_bin;
 use std::{
@@ -56,7 +56,7 @@ fn purge_chain_purges_relay_and_para() {
 
 		let base_path = tempfile::tempdir().unwrap();
 
-		let mut cmd = Command::new(cargo_bin("moonbeam"))
+		let mut cmd = Command::new(cargo_bin("axtend"))
 			.arg("-d")
 			.arg(base_path.path())
 			.arg("--chain")
@@ -87,7 +87,7 @@ fn purge_chain_purges_relay_and_para() {
 		assert!(base_path.path().join("chains/moonbase_dev/db").exists());
 
 		// Run the purge chain command without further args which should delete both databases
-		let status = Command::new(cargo_bin("moonbeam"))
+		let status = Command::new(cargo_bin("axtend"))
 			.args(&["purge-chain", "-d"])
 			.arg(base_path.path())
 			.arg("--chain")
@@ -97,7 +97,7 @@ fn purge_chain_purges_relay_and_para() {
 			.unwrap();
 		assert!(status.success());
 
-		// Make sure the parachain data directory exists
+		// Make sure the allychain data directory exists
 		assert!(base_path.path().join("chains/moonbase_dev").exists());
 		// Make sure its database is deleted
 		assert!(!base_path
@@ -112,7 +112,7 @@ fn purge_chain_purges_relay_and_para() {
 fn builds_specs_based_on_mnemonic() {
 	use serde_json::json;
 
-	let output = Command::new(cargo_bin("moonbeam"))
+	let output = Command::new(cargo_bin("axtend"))
 		.arg("build-spec")
 		.arg("--dev")
 		.arg("--mnemonic")
@@ -120,7 +120,7 @@ fn builds_specs_based_on_mnemonic() {
 		.arg("--accounts")
 		.arg("3")
 		.output()
-		.expect("Failed to start moonbeam");
+		.expect("Failed to start axtend");
 
 	// Gather output as json
 	let chain_spec: serde_json::Value =
@@ -156,7 +156,7 @@ fn builds_specs_based_on_mnemonic() {
 #[test]
 #[cfg(unix)]
 fn export_genesis_state() {
-	let output = Command::new(cargo_bin("moonbeam"))
+	let output = Command::new(cargo_bin("axtend"))
 		.arg("export-genesis-state")
 		.arg("--chain")
 		.arg("moonriver")
@@ -183,7 +183,7 @@ fn export_current_state() {
 
 		let base_path = tempfile::tempdir().unwrap();
 
-		let mut cmd = Command::new(cargo_bin("moonbeam"))
+		let mut cmd = Command::new(cargo_bin("axtend"))
 			.arg("-d")
 			.arg(base_path.path())
 			.arg("--dev")
@@ -212,7 +212,7 @@ fn export_current_state() {
 		let base_path = run_node_and_stop();
 
 		// Test whether we can export one of the generated blocks.
-		let output = Command::new(cargo_bin("moonbeam"))
+		let output = Command::new(cargo_bin("axtend"))
 			.args(&["export-blocks", "-d"])
 			.arg(base_path.path())
 			.arg("--dev")

@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{
 	mock::{
@@ -121,7 +121,11 @@ fn add_association_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered(expected_nimbus_id, Alice).into(),
+					AuthorMappingEvent::AuthorRegistered {
+						author_id: expected_nimbus_id,
+						account_id: Alice
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -161,8 +165,16 @@ fn update_association_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered(first_nimbus_id, Alice).into(),
-					AuthorMappingEvent::AuthorRotated(second_nimbus_id, Alice).into(),
+					AuthorMappingEvent::AuthorRegistered {
+						author_id: first_nimbus_id,
+						account_id: Alice
+					}
+					.into(),
+					AuthorMappingEvent::AuthorRotated {
+						new_author_id: second_nimbus_id,
+						account_id: Alice
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);
@@ -198,13 +210,20 @@ fn clear_association_works() {
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorRegistered(nimbus_id.clone(), Alice).into(),
+					AuthorMappingEvent::AuthorRegistered {
+						author_id: nimbus_id.clone(),
+						account_id: Alice
+					}
+					.into(),
 					BalancesEvent::Unreserved {
 						who: Alice,
 						amount: 10
 					}
 					.into(),
-					AuthorMappingEvent::AuthorDeRegistered(nimbus_id).into(),
+					AuthorMappingEvent::AuthorDeRegistered {
+						author_id: nimbus_id
+					}
+					.into(),
 					EvmEvent::Executed(Precompile.into()).into(),
 				]
 			);

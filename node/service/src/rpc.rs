@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! A collection of node-specific RPC extensions and related background tasks.
 
@@ -34,13 +34,13 @@ use fc_rpc::{
 	StorageOverride, Web3Api, Web3ApiServer,
 };
 use fc_rpc_core::types::{FeeHistoryCache, FilterPool};
+use fp_storage::EthereumStorageSchema;
 use futures::StreamExt;
 use jsonrpc_pubsub::manager::SubscriptionManager;
 use manual_xcm_rpc::{ManualXcm, ManualXcmApi};
-use moonbeam_core_primitives::{Block, Hash};
-use moonbeam_finality_rpc::{MoonbeamFinality, MoonbeamFinalityApi};
-use moonbeam_rpc_txpool::{TxPool, TxPoolServer};
-use pallet_ethereum::EthereumStorageSchema;
+use axtend_core_primitives::{Block, Hash};
+use axtend_finality_rpc::{AxtendFinality, AxtendFinalityApi};
+use axtend_rpc_txpool::{TxPool, TxPoolServer};
 use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
 use sc_client_api::{
 	backend::{AuxStore, Backend, StateBackend, StorageProvider},
@@ -81,8 +81,6 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub filter_pool: Option<FilterPool>,
 	/// The list of optional RPC extensions.
 	pub ethapi_cmd: Vec<EthApiCmd>,
-	/// Size of the LRU cache for block data and their transaction statuses.
-	pub eth_log_block_cache: usize,
 	/// Frontier Backend.
 	pub frontier_backend: Arc<fc_db::Backend<Block>>,
 	/// Backend.
@@ -97,6 +95,10 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	pub fee_history_cache: FeeHistoryCache,
 	/// Channels for manual xcm messages (downward, hrmp)
 	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
+	/// Ethereum data access overrides.
+	pub overrides: Arc<OverrideHandle<Block>>,
+	/// Cache for Ethereum block data.
+	pub block_data_cache: Arc<EthBlockDataCache<Block>>,
 }
 
 pub fn overrides_handle<C, BE>(client: Arc<C>) -> Arc<OverrideHandle<Block>>
@@ -135,7 +137,6 @@ where
 pub fn create_full<C, P, BE, A>(
 	deps: FullDeps<C, P, A, BE>,
 	subscription_task_executor: SubscriptionTaskExecutor,
-	overrides: Arc<OverrideHandle<Block>>,
 ) -> jsonrpc_core::IoHandler<sc_rpc::Metadata>
 where
 	BE: Backend<Block> + 'static,
@@ -159,7 +160,6 @@ where
 		network,
 		filter_pool,
 		ethapi_cmd,
-		eth_log_block_cache,
 		command_sink,
 		frontier_backend,
 		backend: _,
@@ -167,6 +167,8 @@ where
 		fee_history_limit,
 		fee_history_cache,
 		xcm_senders,
+		overrides,
+		block_data_cache,
 	} = deps;
 
 	io.extend_with(SystemApi::to_delegate(FullSystem::new(
@@ -179,11 +181,6 @@ where
 	)));
 	// TODO: are we supporting signing?
 	let signers = Vec::new();
-
-	let block_data_cache = Arc::new(EthBlockDataCache::new(
-		eth_log_block_cache,
-		eth_log_block_cache,
-	));
 
 	enum Never {}
 	impl<T> fp_rpc::ConvertTransaction<T> for Never {
@@ -219,7 +216,6 @@ where
 			frontier_backend.clone(),
 			filter_pool,
 			500_usize, // max stored filters
-			overrides.clone(),
 			max_past_logs,
 			block_data_cache.clone(),
 		)));
@@ -248,7 +244,7 @@ where
 		)));
 	}
 
-	io.extend_with(MoonbeamFinalityApi::to_delegate(MoonbeamFinality::new(
+	io.extend_with(AxtendFinalityApi::to_delegate(AxtendFinality::new(
 		client.clone(),
 		frontier_backend.clone(),
 	)));
@@ -282,7 +278,7 @@ pub struct SpawnTasksParams<'a, B: BlockT, C, BE> {
 	pub fee_history_cache: FeeHistoryCache,
 }
 
-/// Spawn the tasks that are required to run Moonbeam.
+/// Spawn the tasks that are required to run Axtend.
 pub fn spawn_essential_tasks<B, C, BE>(params: SpawnTasksParams<B, C, BE>)
 where
 	C: ProvideRuntimeApi<B> + BlockOf,
@@ -307,7 +303,7 @@ where
 			params.client.clone(),
 			params.substrate_backend.clone(),
 			params.frontier_backend.clone(),
-			SyncStrategy::Parachain,
+			SyncStrategy::Allychain,
 		)
 		.for_each(|()| futures::future::ready(())),
 	);

@@ -1,28 +1,26 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 use ethereum_types::{H160, H256, U256};
 use fc_rpc::{internal_err, public_key};
 use jsonrpc_core::Result as RpcResult;
-pub use moonbeam_rpc_core_txpool::{
+pub use axtend_rpc_core_txpool::{
 	GetT, Summary, Transaction, TransactionMap, TxPool as TxPoolT, TxPoolResult, TxPoolServer,
 };
-// TODO @tgmichel It looks like this graph stuff moved to the test-helpers feature.
-// Is it only for tests? Should we use it here?
-use sc_transaction_pool::test_helpers::{ChainApi, Pool};
+use sc_transaction_pool::{ChainApi, Pool};
 use sc_transaction_pool_api::InPoolTransaction;
 use serde::Serialize;
 use sha3::{Digest, Keccak256};
@@ -32,7 +30,7 @@ use sp_runtime::traits::Block as BlockT;
 use std::collections::HashMap;
 use std::{marker::PhantomData, sync::Arc};
 
-use moonbeam_rpc_primitives_txpool::{
+use axtend_rpc_primitives_txpool::{
 	Transaction as TransactionV2, TxPoolResponse, TxPoolRuntimeApi,
 };
 
@@ -82,9 +80,9 @@ where
 		{
 			api_version
 		} else {
-			return Err(internal_err(format!(
-				"failed to retrieve Runtime Api version"
-			)));
+			return Err(internal_err(
+				"failed to retrieve Runtime Api version".to_string(),
+			));
 		};
 		let ethereum_txns: TxPoolResponse = if api_version == 1 {
 			#[allow(deprecated)]

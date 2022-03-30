@@ -1,6 +1,6 @@
-# Functional testing for Moonbeam
+# Functional testing for Axtend
 
-This folder contains a set of functional tests designed for Moonbeam network.
+This folder contains a set of functional tests designed for Axtend network.
 
 It is written in typescript, using Mocha/Chai as Test framework.
 
@@ -27,33 +27,33 @@ and to print more information:
 npm run test-with-logs
 ```
 
-# Running a parachain test
+# Running a allychain test
 
-Either use script or use parachain testing framework.
+Either use script or use allychain testing framework.
 
 ## Using Script
 
-You can directly launch a parachain test with this script.
+You can directly launch a allychain test with this script.
 It takes care of getting the binary relay node and spawns 2 validators and 2 collators.
 
 ```bash
 scripts/run-para-test-single.sh moonriver/test-balance-genesis.ts
 ```
 
-## Using parachain testing framework
+## Using allychain testing framework
 
 ### Requirements
 
-First make sure you have compiled moonbeam with `cargo build --release` and also copied
-the polkadot executable (built with `cargo build --release`) into the same folder as
-the moonbeam executable: `./target/release`
-(`cp ./target/release/polkadot ../moonbeam/target/release/polkadot`).
+First make sure you have compiled axtend with `cargo build --release` and also copied
+the axia executable (built with `cargo build --release`) into the same folder as
+the axtend executable: `./target/release`
+(`cp ./target/release/axia ../axtend/target/release/axia`).
 
-Also don't forget to build `moonbeam-types-bundle` with `yarn run build` in that folder.
+Also don't forget to build `axtend-types-bundle` with `yarn run build` in that folder.
 
 ### Execution
 
-Then run `npm run para-test-no-ci` to run the parachain tests in the para-tests-no-ci folder.
+Then run `npm run para-test-no-ci` to run the allychain tests in the para-tests-no-ci folder.
 
 This script is prefixed with `DEBUG=test:substrateEvents ` to log events during the tests.
 
@@ -68,24 +68,24 @@ This script is prefixed with `DEBUG=test:substrateEvents ` to log events during 
 
 ## Verbose mode
 
-You can also add the node's logs to the output using the `MOONBEAM_LOG` env variable. Ex:
+You can also add the node's logs to the output using the `AXTEND_LOG` env variable. Ex:
 
 ```
-MOONBEAM_LOG="warn,rpc=trace" npm run test
+AXTEND_LOG="warn,rpc=trace" npm run test
 ```
 
 The test script will find available ports above 20000 in order to ensure that it doesn't conflict
 with any other running services.
 
-# Debugging a Moonbeam node
+# Debugging a Axtend node
 
 The repository contains a pre-configured debugger configuration for VSCode with the **CodeLLDB**
 (`vadimcn.vscode-lldb`) extension.
 
 Before debugging, you need to build the node with debug symbols with command
 `RUSTFLAGS=-g cargo build --release` (available as a VSCode task). Then go in the **Debug** tab in
-the left bar of VSCode and make sure **Launch Moonbeam Node (Linux)** is selected in the top
-dropdown. **Build & Launch Moonbeam Node (Linux)** will trigger the build before launching the node.
+the left bar of VSCode and make sure **Launch Axtend Node (Linux)** is selected in the top
+dropdown. **Build & Launch Axtend Node (Linux)** will trigger the build before launching the node.
 
 To launch the debug session click on the green "play" arrow next to the dropdown. It will take some
 time before the node starts, but the terminal containing the node output will appear when it is

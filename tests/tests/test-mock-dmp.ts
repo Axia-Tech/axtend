@@ -1,10 +1,10 @@
-import Keyring from "@polkadot/keyring";
-import { KeyringPair } from "@polkadot/keyring/types";
+import Keyring from "@axia/keyring";
+import { KeyringPair } from "@axia/keyring/types";
 import { expect } from "chai";
-import { BN } from "@polkadot/util";
+import { BN } from "@axia/util";
 
 import { ALITH_PRIV_KEY } from "../util/constants";
-import { describeDevMoonbeam } from "../util/setup-dev-tests";
+import { describeDevAxtend } from "../util/setup-dev-tests";
 import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { customWeb3Request } from "../util/providers";
 
@@ -14,15 +14,15 @@ const RELAY_TOKEN = 1_000_000_000_000n;
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
 
 const assetMetadata = {
-  name: "DOT",
-  symbol: "DOT",
+  name: "AXC",
+  symbol: "AXC",
   decimals: new BN(12),
   isFrozen: false,
 };
 
 const sourceLocation = { XCM: { parents: 1, interior: "Here" } };
 
-describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
+describeDevAxtend("Mock XCM - receive downward transfer", (context) => {
   let assetId: string;
   let alith: KeyringPair;
 
@@ -34,8 +34,8 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     const { events: eventsRegister } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.registerAsset(
+      context.axiaApi.tx.sudo.sudo(
+        context.axiaApi.tx.assetManager.registerAsset(
           sourceLocation,
           assetMetadata,
           new BN(1),
@@ -55,8 +55,8 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     const { events } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.sudo.sudo(
-        context.polkadotApi.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0)
+      context.axiaApi.tx.sudo.sudo(
+        context.axiaApi.tx.assetManager.setAssetUnitsPerSecond(sourceLocation, 0, 0)
       )
     );
     expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");
@@ -64,12 +64,12 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
 
     // check asset in storage
     const registeredAsset = (
-      (await context.polkadotApi.query.assets.asset(assetId)) as any
+      (await context.axiaApi.query.assets.asset(assetId)) as any
     ).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
-  it("Should receive a downward transfer of 10 DOTs to Alith", async function () {
+  it("Should receive a downward transfer of 10 AXCs to Alith", async function () {
     // Send RPC call to inject XCM message
     // You can provide a message, but if you don't a downward transfer is the default
     await customWeb3Request(context.web3, "xcm_injectDownwardMessage", [[]]);
@@ -77,10 +77,12 @@ describeDevMoonbeam("Mock XCM - receive downward transfer", (context) => {
     // Create a block in which the XCM will be executed
     await context.createBlock();
 
-    // Make sure the state has ALITH's to DOT tokens
+    // Make sure the state has ALITH's to AXC tokens
     let alith_dot_balance = (
-      await context.polkadotApi.query.assets.account(assetId, alith.address)
-    ).balance.toBigInt();
+      (await context.axiaApi.query.assets.account(assetId, alith.address)) as any
+    )
+      .unwrap()
+      ["balance"].toBigInt();
 
     expect(alith_dot_balance).to.eq(10n * RELAY_TOKEN);
   });

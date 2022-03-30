@@ -1,9 +1,9 @@
 [package]
 name = "moonkey"
 authors = [ "PureStake" ]
-description = "Moonbeam Key Tool"
+description = "Axtend Key Tool"
 edition = "2018"
-homepage = "https://moonbeam.network"
+homepage = "https://axtend.network"
 license = "GPL-3.0-only"
 version = "0.1.1"
 
@@ -12,5 +12,5 @@ name = "moonkey"
 path = "src/main.rs"
 
 [dependencies]
-cli-opt = { package = "moonbeam-cli-opt", path = "../../../node/cli-opt", default-features = false }
-structopt = "0.3.8"
+clap = { version = "3.1", features = [ "derive" ] }
+cli-opt = { package = "axtend-cli-opt", path = "../../../node/cli-opt", default-features = false }

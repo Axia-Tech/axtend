@@ -1,5 +1,5 @@
-import { Keyring } from "@polkadot/api";
-import { KeyringPair } from "@polkadot/keyring/types";
+import { Keyring } from "@axia/api";
+import { KeyringPair } from "@axia/keyring/types";
 import { expect } from "chai";
 import {
   GENESIS_ACCOUNT,
@@ -12,10 +12,10 @@ import {
   ZERO_ADDRESS,
   GAS_PRICE,
 } from "../../util/constants";
-import { describeDevMoonbeam, DevTestContext } from "../../util/setup-dev-tests";
-import { ApiTypes, SubmittableExtrinsic } from "@polkadot/api/types";
+import { describeDevAxtend, DevTestContext } from "../../util/setup-dev-tests";
+import { ApiTypes, SubmittableExtrinsic } from "@axia/api/types";
 
-import { blake2AsHex } from "@polkadot/util-crypto";
+import { blake2AsHex } from "@axia/util-crypto";
 import { createBlockWithExtrinsic } from "../../util/substrate-rpc";
 import {
   callPrecompile,
@@ -23,7 +23,7 @@ import {
   createTransaction,
   sendPrecompileTx,
 } from "../../util/transactions";
-import { numberToHex } from "@polkadot/util";
+import { numberToHex } from "@axia/util";
 import { getCompiled } from "../../util/contracts";
 import { ethers } from "ethers";
 import { Interface } from "ethers/lib/utils";
@@ -97,7 +97,7 @@ export const notePreimagePrecompile = async <
   return blake2AsHex(encodedProposal);
 };
 
-describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
+describeDevAxtend("Democracy - genesis and preimage", (context) => {
   let genesisAccount: KeyringPair;
   let iFace: Interface;
 
@@ -108,23 +108,25 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
   });
   it("should check initial state - no referendum", async function () {
     // referendumCount
-    const referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+    const referendumCount = await context.axiaApi.query.democracy.referendumCount();
     expect(referendumCount.toHuman()).to.equal("0");
   });
-  it("should check initial state - 0x0 ParachainBondAccount", async function () {
+  it("should check initial state - 0x0 AllychainBondAccount", async function () {
     // referendumCount
-    const parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
+    const allychainBondInfo = await context.axiaApi.query.allychainStaking.allychainBondInfo();
+    expect(allychainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
   });
   it("notePreimage", async function () {
     // notePreimage
     const encodedHash = await notePreimagePrecompile(
       context,
       iFace,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      context.axiaApi.tx.allychainStaking.setAllychainBondAccount(GENESIS_ACCOUNT)
     );
 
-    const preimageStatus = await context.polkadotApi.query.democracy.preimages(encodedHash);
+    const preimageStatus = (await context.axiaApi.query.democracy.preimages(
+      encodedHash
+    )) as any;
     expect(
       preimageStatus.unwrap().isAvailable && preimageStatus.unwrap().asAvailable.provider.toString()
     ).to.equal(GENESIS_ACCOUNT);
@@ -134,7 +136,7 @@ describeDevMoonbeam("Democracy - genesis and preimage", (context) => {
   });
 });
 
-describeDevMoonbeam("Democracy - propose", (context) => {
+describeDevAxtend("Democracy - propose", (context) => {
   let genesisAccount: KeyringPair;
   let encodedHash: `0x${string}`;
   let iFace: Interface;
@@ -148,7 +150,7 @@ describeDevMoonbeam("Democracy - propose", (context) => {
     encodedHash = await notePreimagePrecompile(
       context,
       iFace,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      context.axiaApi.tx.allychainStaking.setAllychainBondAccount(GENESIS_ACCOUNT)
     );
   });
   it("propose", async function () {
@@ -164,26 +166,26 @@ describeDevMoonbeam("Democracy - propose", (context) => {
     );
 
     // referendumCount
-    const referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+    const referendumCount = await context.axiaApi.query.democracy.referendumCount();
     expect(referendumCount.toHuman()).to.equal("0");
 
     // publicPropCount
-    const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
+    const publicPropCount = await context.axiaApi.query.democracy.publicPropCount();
     expect(publicPropCount.toHuman()).to.equal("1");
 
     // publicProps
-    const publicProps = await context.polkadotApi.query.democracy.publicProps();
+    const publicProps = await context.axiaApi.query.democracy.publicProps();
     // encodedHash
     expect((publicProps.toHuman() as any)[0][1]).to.equal(encodedHash);
     // prop author
     expect((publicProps.toHuman() as any)[0][2]).to.equal(GENESIS_ACCOUNT);
     // depositOf
-    const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
+    const depositOf = await context.axiaApi.query.democracy.depositOf(0);
     expect((depositOf.toHuman() as any)[1]).to.equal("1,000,000,000,000,000,000,000");
   });
 });
 
-describeDevMoonbeam("Democracy - second proposal", (context) => {
+describeDevAxtend("Democracy - second proposal", (context) => {
   let genesisAccount: KeyringPair, alith: KeyringPair;
   let encodedHash: `0x${string}`;
   let launchPeriod;
@@ -196,13 +198,13 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
     iFace = await deployAndInterfaceContract(context, "Democracy");
 
     //launchPeriod
-    launchPeriod = await context.polkadotApi.consts.democracy.launchPeriod;
+    launchPeriod = await context.axiaApi.consts.democracy.launchPeriod;
 
     // notePreimage
     encodedHash = await notePreimagePrecompile(
       context,
       iFace,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      context.axiaApi.tx.allychainStaking.setAllychainBondAccount(GENESIS_ACCOUNT)
     );
 
     // propose
@@ -230,14 +232,14 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
   // TODO: test getters
   it("second proposal", async function () {
     // publicProps
-    const publicProps = await context.polkadotApi.query.democracy.publicProps();
+    const publicProps = await context.axiaApi.query.democracy.publicProps();
     // encodedHash
     expect((publicProps.toHuman() as any)[0][1]).to.equal(encodedHash);
     // prop author
     expect((publicProps.toHuman() as any)[0][2]).to.equal(GENESIS_ACCOUNT);
 
     // depositOf
-    const depositOf = await context.polkadotApi.query.democracy.depositOf(0);
+    const depositOf = await context.axiaApi.query.democracy.depositOf(0);
     expect((depositOf.toHuman() as any)[1]).to.equal("1,000,000,000,000,000,000,000");
     expect((depositOf.toHuman() as any)[0][1]).to.equal(ALITH);
   });
@@ -253,20 +255,20 @@ describeDevMoonbeam("Democracy - second proposal", (context) => {
       await context.createBlock();
     }
     // referendumCount
-    let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+    let referendumCount = await context.axiaApi.query.democracy.referendumCount();
     expect(referendumCount.toHuman()).to.equal("1");
 
     // publicPropCount
-    const publicPropCount = await context.polkadotApi.query.democracy.publicPropCount();
+    const publicPropCount = await context.axiaApi.query.democracy.publicPropCount();
     expect(publicPropCount.toHuman()).to.equal("1");
 
     // referendumInfoOf
-    const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
+    const referendumInfoOf = await context.axiaApi.query.democracy.referendumInfoOf(0);
     expect((referendumInfoOf.toHuman() as any).Ongoing.proposalHash).to.equal(encodedHash);
   });
 });
 
-describeDevMoonbeam("Democracy - vote on referendum", (context) => {
+describeDevAxtend("Democracy - vote on referendum", (context) => {
   let genesisAccount: KeyringPair, alith: KeyringPair;
   let encodedHash: `0x${string}`;
   let enactmentPeriod, votingPeriod;
@@ -280,15 +282,15 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     iFace = await deployAndInterfaceContract(context, "Democracy");
 
     // enactmentPeriod
-    enactmentPeriod = await context.polkadotApi.consts.democracy.enactmentPeriod;
+    enactmentPeriod = await context.axiaApi.consts.democracy.enactmentPeriod;
     // votingPeriod
-    votingPeriod = await context.polkadotApi.consts.democracy.votingPeriod;
+    votingPeriod = await context.axiaApi.consts.democracy.votingPeriod;
 
     // encodedHash
     encodedHash = await notePreimagePrecompile(
       context,
       iFace,
-      context.polkadotApi.tx.parachainStaking.setParachainBondAccount(GENESIS_ACCOUNT)
+      context.axiaApi.tx.allychainStaking.setAllychainBondAccount(GENESIS_ACCOUNT)
     );
 
     // propose
@@ -340,7 +342,7 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     );
 
     // referendumInfoOf
-    const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
+    const referendumInfoOf = await context.axiaApi.query.democracy.referendumInfoOf(0);
     console.log("referendumInfoOf.toHuman() ", referendumInfoOf.toHuman());
     expect((referendumInfoOf.toHuman() as any).Ongoing.proposalHash).to.equal(encodedHash);
     expect((referendumInfoOf.toHuman() as any).Ongoing.tally.ayes).to.equal(
@@ -354,15 +356,15 @@ describeDevMoonbeam("Democracy - vote on referendum", (context) => {
     for (let i = 0; i < Number(votingPeriod) + Number(enactmentPeriod) + 10; i++) {
       await context.createBlock();
     }
-    let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    expect(parachainBondInfo.toHuman()["account"]).to.equal(GENESIS_ACCOUNT);
+    let allychainBondInfo = await context.axiaApi.query.allychainStaking.allychainBondInfo();
+    expect(allychainBondInfo.toHuman()["account"]).to.equal(GENESIS_ACCOUNT);
   });
 });
 
 // When forgetting to call notePreimage, all following steps should work as intended
 // until the end where the proposal is never enacted
 
-describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
+describeDevAxtend("Democracy - forget notePreimage", (context) => {
   let genesisAccount: KeyringPair, alith: KeyringPair;
   let encodedHash: string;
   let enactmentPeriod, votingPeriod;
@@ -377,8 +379,8 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
     // notePreimage
     // compute proposal hash but don't submit it
     const encodedProposal =
-      context.polkadotApi.tx.parachainStaking
-        .setParachainBondAccount(GENESIS_ACCOUNT)
+      context.axiaApi.tx.allychainStaking
+        .setAllychainBondAccount(GENESIS_ACCOUNT)
         .method.toHex() || "";
     encodedHash = blake2AsHex(encodedProposal);
   });
@@ -389,7 +391,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
     const { events: eventsPropose } = await createBlockWithExtrinsic(
       context,
       genesisAccount,
-      context.polkadotApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
+      context.axiaApi.tx.democracy.propose(encodedHash, PROPOSAL_AMOUNT)
     );
     expect(eventsPropose[2].toHuman().method).to.eq("Proposed");
     expect(eventsPropose[5].toHuman().method).to.eq("ExtrinsicSuccess");
@@ -398,7 +400,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
     const { events: eventsSecond } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.democracy.second(0, 1000)
+      context.axiaApi.tx.democracy.second(0, 1000)
     );
     expect(eventsSecond[2].toHuman().method).to.eq("Seconded");
     expect(eventsSecond[5].toHuman().method).to.eq("ExtrinsicSuccess");
@@ -408,7 +410,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
       await context.createBlock();
     }
     // referendumCount
-    let referendumCount = await context.polkadotApi.query.democracy.referendumCount();
+    let referendumCount = await context.axiaApi.query.democracy.referendumCount();
     expect(referendumCount.toHuman()).to.equal("1");
 
     // vote
@@ -416,7 +418,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
     const { events: eventsVote } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.polkadotApi.tx.democracy.vote(0, {
+      context.axiaApi.tx.democracy.vote(0, {
         Standard: { balance: VOTE_AMOUNT, vote: { aye: true, conviction: 1 } },
       })
     );
@@ -425,7 +427,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
     expect(eventsVote[4].toHuman().method).to.eq("ExtrinsicSuccess");
 
     // referendumInfoOf
-    const referendumInfoOf = await context.polkadotApi.query.democracy.referendumInfoOf(0);
+    const referendumInfoOf = await context.axiaApi.query.democracy.referendumInfoOf(0);
     expect((referendumInfoOf.toHuman() as any).Ongoing.proposalHash).to.equal(encodedHash);
     expect((referendumInfoOf.toHuman() as any).Ongoing.tally.ayes).to.equal(
       "10,000,000,000,000,000,000"
@@ -439,7 +441,7 @@ describeDevMoonbeam("Democracy - forget notePreimage", (context) => {
       await context.createBlock();
     }
     // the enactement should fail
-    let parachainBondInfo = await context.polkadotApi.query.parachainStaking.parachainBondInfo();
-    expect(parachainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
+    let allychainBondInfo = await context.axiaApi.query.allychainStaking.allychainBondInfo();
+    expect(allychainBondInfo.toHuman()["account"]).to.equal(ZERO_ADDRESS);
   });
 });

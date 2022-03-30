@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! This module constructs and executes the appropriate service components for the given subcommand
 
@@ -22,9 +22,9 @@ use cumulus_client_service::genesis::generate_genesis_block;
 use cumulus_primitives_core::ParaId;
 use log::info;
 use parity_scale_codec::Encode;
-use polkadot_parachain::primitives::AccountIdConversion;
-#[cfg(feature = "westend-native")]
-use polkadot_service::WestendChainSpec;
+use axia_allychain::primitives::AccountIdConversion;
+#[cfg(feature = "alphanet-native")]
+use axia_service::AlphanetChainSpec;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, RuntimeVersion, SharedParams, SubstrateCli,
@@ -43,7 +43,7 @@ fn load_spec(
 	Ok(match id {
 		// Moonbase networks
 		"moonbase-alpha" | "alphanet" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
-			&include_bytes!("../../../specs/alphanet/parachain-embedded-specs-v8.json")[..],
+			&include_bytes!("../../../specs/alphanet/allychain-embedded-specs-v8.json")[..],
 		)?),
 		#[cfg(feature = "moonbase-native")]
 		"moonbase-local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
@@ -51,28 +51,28 @@ fn load_spec(
 		"moonbase-dev" | "dev" | "development" => {
 			Box::new(chain_spec::moonbase::development_chain_spec(None, None))
 		}
-		#[cfg(all(feature = "test-spec", feature = "moonbeam-native"))]
+		#[cfg(all(feature = "test-spec", feature = "axtend-native"))]
 		"staking" => Box::new(chain_spec::test_spec::staking_spec(para_id)),
 		// Moonriver networks
 		"moonriver" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
-			&include_bytes!("../../../specs/moonriver/parachain-embedded-specs.json")[..],
+			&include_bytes!("../../../specs/moonriver/allychain-embedded-specs.json")[..],
 		)?),
 		#[cfg(feature = "moonriver-native")]
 		"moonriver-dev" => Box::new(chain_spec::moonriver::development_chain_spec(None, None)),
 		#[cfg(feature = "moonriver-native")]
 		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
 
-		// Moonbeam networks
-		"moonbeam" | "" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
-			&include_bytes!("../../../specs/moonbeam/parachain-embedded-specs.json")[..],
+		// Axtend networks
+		"axtend" | "" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
+			&include_bytes!("../../../specs/axtend/allychain-embedded-specs.json")[..],
 		)?),
-		#[cfg(feature = "moonbeam-native")]
-		"moonbeam-dev" => Box::new(chain_spec::moonbeam::development_chain_spec(None, None)),
-		#[cfg(feature = "moonbeam-native")]
-		"moonbeam-local" => Box::new(chain_spec::moonbeam::get_chain_spec(para_id)),
+		#[cfg(feature = "axtend-native")]
+		"axtend-dev" => Box::new(chain_spec::axtend::development_chain_spec(None, None)),
+		#[cfg(feature = "axtend-native")]
+		"axtend-local" => Box::new(chain_spec::axtend::get_chain_spec(para_id)),
 
 		// Specs provided as json specify which runtime to use in their file name. For example,
-		// `moonbeam-custom.json` uses the moonbeam runtime.
+		// `axtend-custom.json` uses the axtend runtime.
 		// `moonbase-dev-workshop.json` uses the moonbase runtime.
 		// If no magic strings match, then the moonbase runtime is used by default.
 		// TODO explore CLI options to make this nicer. eg `--force-moonriver-runtime`
@@ -91,7 +91,7 @@ fn load_spec(
 			} else if run_cmd.force_moonriver || starts_with("moonriver") {
 				Box::new(chain_spec::moonriver::ChainSpec::from_json_file(path)?)
 			} else {
-				Box::new(chain_spec::moonbeam::ChainSpec::from_json_file(path)?)
+				Box::new(chain_spec::axtend::ChainSpec::from_json_file(path)?)
 			}
 		}
 	})
@@ -99,19 +99,19 @@ fn load_spec(
 
 impl SubstrateCli for Cli {
 	fn impl_name() -> String {
-		"Moonbeam Parachain Collator".into()
+		"Axtend Allychain Collator".into()
 	}
 
 	fn impl_version() -> String {
-		env!("SUBSTRATE_CLI_IMPL_VERSION").into()
+		env!("AXLIB_CLI_IMPL_VERSION").into()
 	}
 
 	fn description() -> String {
 		format!(
-			"Moonbase Parachain Collator\n\nThe command-line arguments provided first will be \
-		passed to the parachain node, while the arguments provided after -- will be passed \
+			"Moonbase Allychain Collator\n\nThe command-line arguments provided first will be \
+		passed to the allychain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
-		{} [parachain-args] -- [relaychain-args]",
+		{} [allychain-args] -- [relaychain-args]",
 			Self::executable_name()
 		)
 	}
@@ -121,7 +121,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/PureStake/moonbeam/issues/new".into()
+		"https://github.com/PureStake/axtend/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
@@ -129,15 +129,15 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		load_spec(id, self.run.parachain_id.unwrap_or(1000).into(), &self.run)
+		load_spec(id, self.run.allychain_id.unwrap_or(1000).into(), &self.run)
 	}
 
 	fn native_runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
 		match spec {
 			#[cfg(feature = "moonriver-native")]
 			spec if spec.is_moonriver() => return &service::moonriver_runtime::VERSION,
-			#[cfg(feature = "moonbeam-native")]
-			spec if spec.is_moonbeam() => return &service::moonbeam_runtime::VERSION,
+			#[cfg(feature = "axtend-native")]
+			spec if spec.is_axtend() => return &service::axtend_runtime::VERSION,
 			#[cfg(feature = "moonbase-native")]
 			_ => return &service::moonbase_runtime::VERSION,
 			#[cfg(not(feature = "moonbase-native"))]
@@ -148,18 +148,18 @@ impl SubstrateCli for Cli {
 
 impl SubstrateCli for RelayChainCli {
 	fn impl_name() -> String {
-		"Moonbeam Parachain Collator".into()
+		"Axtend Allychain Collator".into()
 	}
 
 	fn impl_version() -> String {
-		env!("SUBSTRATE_CLI_IMPL_VERSION").into()
+		env!("AXLIB_CLI_IMPL_VERSION").into()
 	}
 
 	fn description() -> String {
-		"Moonbeam Parachain Collator\n\nThe command-line arguments provided first will be \
-		passed to the parachain node, while the arguments provided after -- will be passed \
+		"Axtend Allychain Collator\n\nThe command-line arguments provided first will be \
+		passed to the allychain node, while the arguments provided after -- will be passed \
 		to the relaychain node.\n\n\
-		parachain-collator [parachain-args] -- [relaychain-args]"
+		allychain-collator [allychain-args] -- [relaychain-args]"
 			.into()
 	}
 
@@ -168,7 +168,7 @@ impl SubstrateCli for RelayChainCli {
 	}
 
 	fn support_url() -> String {
-		"https://github.com/PureStake/moonbeam/issues/new".into()
+		"https://github.com/PureStake/axtend/issues/new".into()
 	}
 
 	fn copyright_start_year() -> i32 {
@@ -177,19 +177,19 @@ impl SubstrateCli for RelayChainCli {
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 		match id {
-			#[cfg(feature = "westend-native")]
-			"westend_moonbase_relay_testnet" => Ok(Box::new(WestendChainSpec::from_json_bytes(
-				&include_bytes!("../../../specs/alphanet/westend-embedded-specs-v8.json")[..],
+			#[cfg(feature = "alphanet-native")]
+			"alphanet_moonbase_relay_testnet" => Ok(Box::new(AlphanetChainSpec::from_json_bytes(
+				&include_bytes!("../../../specs/alphanet/alphanet-embedded-specs-v8.json")[..],
 			)?)),
-			// If we are not using a moonbeam-centric pre-baked relay spec, then fall back to the
-			// Polkadot service to interpret the id.
-			_ => polkadot_cli::Cli::from_iter([RelayChainCli::executable_name()].iter())
+			// If we are not using a axtend-centric pre-baked relay spec, then fall back to the
+			// Axia service to interpret the id.
+			_ => axia_cli::Cli::from_iter([RelayChainCli::executable_name()].iter())
 				.load_spec(id),
 		}
 	}
 
 	fn native_runtime_version(chain_spec: &Box<dyn ChainSpec>) -> &'static RuntimeVersion {
-		polkadot_cli::Cli::native_runtime_version(chain_spec)
+		axia_cli::Cli::native_runtime_version(chain_spec)
 	}
 }
 
@@ -241,9 +241,9 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&params.base)?;
 			runner.sync_run(|config| {
 				if params.mnemonic.is_some() || params.accounts.is_some() {
-					if config.chain_spec.is_moonbeam() {
+					if config.chain_spec.is_axtend() {
 						params.base.run(
-							Box::new(chain_spec::moonbeam::development_chain_spec(
+							Box::new(chain_spec::axtend::development_chain_spec(
 								params.mnemonic.clone(),
 								params.accounts,
 							)),
@@ -321,21 +321,21 @@ pub fn run() -> Result<()> {
 					return cmd.base.run(config.database);
 				}
 
-				let polkadot_cli = RelayChainCli::new(
+				let axia_cli = RelayChainCli::new(
 					&config,
 					[RelayChainCli::executable_name().to_string()]
 						.iter()
 						.chain(cli.relaychain_args.iter()),
 				);
 
-				let polkadot_config = SubstrateCli::create_configuration(
-					&polkadot_cli,
-					&polkadot_cli,
+				let axia_config = SubstrateCli::create_configuration(
+					&axia_cli,
+					&axia_cli,
 					config.tokio_handle.clone(),
 				)
 				.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
-				cmd.run(config, polkadot_config)
+				cmd.run(config, axia_config)
 			})
 		}
 		Some(Subcommand::Revert(cmd)) => {
@@ -353,14 +353,16 @@ pub fn run() -> Result<()> {
 			// Cumulus approach here, we directly call the generic load_spec func
 			let chain_spec = load_spec(
 				&params.chain.clone().unwrap_or_default(),
-				params.parachain_id.unwrap_or(1000).into(),
+				params.allychain_id.unwrap_or(1000).into(),
 				&cli.run,
 			)?;
+			let state_version = Cli::native_runtime_version(&chain_spec).state_version();
+
 			let output_buf = match chain_spec {
 				#[cfg(feature = "moonriver-native")]
 				chain_spec if chain_spec.is_moonriver() => {
 					let block: service::moonriver_runtime::Block =
-						generate_genesis_block(&chain_spec)?;
+						generate_genesis_block(&chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -369,10 +371,10 @@ pub fn run() -> Result<()> {
 					};
 					output_buf
 				}
-				#[cfg(feature = "moonbeam-native")]
-				chain_spec if chain_spec.is_moonbeam() => {
-					let block: service::moonbeam_runtime::Block =
-						generate_genesis_block(&chain_spec)?;
+				#[cfg(feature = "axtend-native")]
+				chain_spec if chain_spec.is_axtend() => {
+					let block: service::axtend_runtime::Block =
+						generate_genesis_block(&chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -384,7 +386,7 @@ pub fn run() -> Result<()> {
 				#[cfg(feature = "moonbase-native")]
 				_ => {
 					let block: service::moonbase_runtime::Block =
-						generate_genesis_block(&chain_spec)?;
+						generate_genesis_block(&chain_spec, state_version)?;
 					let raw_header = block.header().encode();
 					let output_buf = if params.raw {
 						raw_header
@@ -444,28 +446,22 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&cmd)?;
 			let chain_spec = &runner.config().chain_spec;
 			match chain_spec {
-				#[cfg(feature = "moonbeam-native")]
-				spec if spec.is_moonbeam() => runner.sync_run(|config| {
-					cmd.run::<service::moonbeam_runtime::RuntimeApi, service::MoonbeamExecutor>(
-						&working_dir,
-						&cmd,
-						config,
+				#[cfg(feature = "axtend-native")]
+				spec if spec.is_axtend() => runner.sync_run(|config| {
+					cmd.run::<service::axtend_runtime::RuntimeApi, service::AxtendExecutor>(
+						&cmd, config,
 					)
 				}),
 				#[cfg(feature = "moonriver-native")]
 				spec if spec.is_moonriver() => runner.sync_run(|config| {
 					cmd.run::<service::moonriver_runtime::RuntimeApi, service::MoonriverExecutor>(
-						&working_dir,
-						&cmd,
-						config,
+						&cmd, config,
 					)
 				}),
 				#[cfg(feature = "moonbase-native")]
 				spec if spec.is_moonbase() => runner.sync_run(|config| {
 					cmd.run::<service::moonbase_runtime::RuntimeApi, service::MoonbaseExecutor>(
-						&working_dir,
-						&cmd,
-						config,
+						&cmd, config,
 					)
 				}),
 				_ => {
@@ -491,10 +487,10 @@ pub fn run() -> Result<()> {
 							)
 						})
 					}
-					#[cfg(feature = "moonbeam-native")]
-					spec if spec.is_moonbeam() => {
+					#[cfg(feature = "axtend-native")]
+					spec if spec.is_axtend() => {
 						return runner.sync_run(|config| {
-							cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
+							cmd.run::<service::axtend_runtime::Block, service::AxtendExecutor>(
 								config,
 							)
 						})
@@ -542,8 +538,8 @@ pub fn run() -> Result<()> {
 						))
 					})
 				}
-				#[cfg(feature = "moonbeam-native")]
-				spec if spec.is_moonbeam() => runner.async_run(|config| {
+				#[cfg(feature = "axtend-native")]
+				spec if spec.is_axtend() => runner.async_run(|config| {
 					let registry = config.prometheus_config.as_ref().map(|cfg| &cfg.registry);
 					let task_manager =
 						sc_service::TaskManager::new(config.tokio_handle.clone(), registry)
@@ -552,7 +548,7 @@ pub fn run() -> Result<()> {
 							})?;
 
 					Ok((
-						cmd.run::<service::moonbeam_runtime::Block, service::MoonbeamExecutor>(
+						cmd.run::<service::axtend_runtime::Block, service::AxtendExecutor>(
 							config,
 						),
 						task_manager,
@@ -592,7 +588,7 @@ pub fn run() -> Result<()> {
 			runner.run_node_until_exit(|config| async move {
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let para_id = extension.map(|e| e.para_id);
-				let id = ParaId::from(cli.run.parachain_id.clone().or(para_id).unwrap_or(1000));
+				let id = ParaId::from(cli.run.allychain_id.clone().or(para_id).unwrap_or(1000));
 
 				let rpc_config = RpcConfig {
 					ethapi: cli.run.ethapi,
@@ -605,7 +601,7 @@ pub fn run() -> Result<()> {
 				};
 
 				// If dev service was requested, start up manual or instant seal.
-				// Otherwise continue with the normal parachain node.
+				// Otherwise continue with the normal allychain node.
 				// Dev service can be requested in two ways.
 				// 1. by providing the --dev-service flag to the CLI
 				// 2. by specifying "dev-service" in the chain spec's "relay-chain" field.
@@ -630,10 +626,10 @@ pub fn run() -> Result<()> {
 							service::MoonriverExecutor,
 						>(config, author_id, cli.run.sealing, rpc_config)
 						.map_err(Into::into),
-						#[cfg(feature = "moonbeam-native")]
-						spec if spec.is_moonbeam() => service::new_dev::<
-							service::moonbeam_runtime::RuntimeApi,
-							service::MoonbeamExecutor,
+						#[cfg(feature = "axtend-native")]
+						spec if spec.is_axtend() => service::new_dev::<
+							service::axtend_runtime::RuntimeApi,
+							service::AxtendExecutor,
 						>(config, author_id, cli.run.sealing, rpc_config)
 						.map_err(Into::into),
 						#[cfg(feature = "moonbase-native")]
@@ -647,33 +643,36 @@ pub fn run() -> Result<()> {
 					};
 				}
 
-				let polkadot_cli = RelayChainCli::new(
+				let axia_cli = RelayChainCli::new(
 					&config,
 					[RelayChainCli::executable_name().to_string()]
 						.iter()
 						.chain(cli.relaychain_args.iter()),
 				);
 
-				let parachain_account =
-					AccountIdConversion::<polkadot_primitives::v0::AccountId>::into_account(&id);
+				let allychain_account =
+					AccountIdConversion::<axia_primitives::v0::AccountId>::into_account(&id);
+
+				let state_version =
+					RelayChainCli::native_runtime_version(&config.chain_spec).state_version();
 
 				let genesis_state = match &config.chain_spec {
 					#[cfg(feature = "moonriver-native")]
 					spec if spec.is_moonriver() => {
 						let block: service::moonriver_runtime::Block =
-							generate_genesis_block(&spec)?;
+							generate_genesis_block(&spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
-					#[cfg(feature = "moonbeam-native")]
-					spec if spec.is_moonbeam() => {
-						let block: service::moonbeam_runtime::Block =
-							generate_genesis_block(&spec)?;
+					#[cfg(feature = "axtend-native")]
+					spec if spec.is_axtend() => {
+						let block: service::axtend_runtime::Block =
+							generate_genesis_block(&spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(feature = "moonbase-native")]
 					_ => {
 						let block: service::moonbase_runtime::Block =
-							generate_genesis_block(&config.chain_spec)?;
+							generate_genesis_block(&config.chain_spec, state_version)?;
 						format!("0x{:?}", HexDisplay::from(&block.header().encode()))
 					}
 					#[cfg(not(feature = "moonbase-native"))]
@@ -681,28 +680,28 @@ pub fn run() -> Result<()> {
 				};
 
 				let tokio_handle = config.tokio_handle.clone();
-				let polkadot_config =
-					SubstrateCli::create_configuration(&polkadot_cli, &polkadot_cli, tokio_handle)
+				let axia_config =
+					SubstrateCli::create_configuration(&axia_cli, &axia_cli, tokio_handle)
 						.map_err(|err| format!("Relay chain argument error: {}", err))?;
 
-				info!("Parachain id: {:?}", id);
-				info!("Parachain Account: {}", parachain_account);
-				info!("Parachain genesis state: {}", genesis_state);
+				info!("Allychain id: {:?}", id);
+				info!("Allychain Account: {}", allychain_account);
+				info!("Allychain genesis state: {}", genesis_state);
 
 				match &config.chain_spec {
 					#[cfg(feature = "moonriver-native")]
 					spec if spec.is_moonriver() => service::start_node::<
 						service::moonriver_runtime::RuntimeApi,
 						service::MoonriverExecutor,
-					>(config, polkadot_config, id, rpc_config)
+					>(config, axia_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),
-					#[cfg(feature = "moonbeam-native")]
-					spec if spec.is_moonbeam() => service::start_node::<
-						service::moonbeam_runtime::RuntimeApi,
-						service::MoonbeamExecutor,
-					>(config, polkadot_config, id, rpc_config)
+					#[cfg(feature = "axtend-native")]
+					spec if spec.is_axtend() => service::start_node::<
+						service::axtend_runtime::RuntimeApi,
+						service::AxtendExecutor,
+					>(config, axia_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),
@@ -710,7 +709,7 @@ pub fn run() -> Result<()> {
 					_ => service::start_node::<
 						service::moonbase_runtime::RuntimeApi,
 						service::MoonbaseExecutor,
-					>(config, polkadot_config, id, rpc_config)
+					>(config, axia_config, id, rpc_config)
 					.await
 					.map(|r| r.0)
 					.map_err(Into::into),
@@ -724,7 +723,7 @@ pub fn run() -> Result<()> {
 
 impl DefaultConfigurationValues for RelayChainCli {
 	fn p2p_listen_port() -> u16 {
-		30334
+		30335
 	}
 
 	fn rpc_ws_listen_port() -> u16 {
@@ -732,7 +731,7 @@ impl DefaultConfigurationValues for RelayChainCli {
 	}
 
 	fn rpc_http_listen_port() -> u16 {
-		9934
+		9935
 	}
 
 	fn prometheus_listen_port() -> u16 {
@@ -776,12 +775,27 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.rpc_ws(default_listen_port)
 	}
 
-	fn prometheus_config(&self, default_listen_port: u16) -> Result<Option<PrometheusConfig>> {
-		self.base.base.prometheus_config(default_listen_port)
+	fn prometheus_config(
+		&self,
+		default_listen_port: u16,
+		chain_spec: &Box<dyn ChainSpec>,
+	) -> Result<Option<PrometheusConfig>> {
+		self.base
+			.base
+			.prometheus_config(default_listen_port, chain_spec)
 	}
 
-	fn init<C: SubstrateCli>(&self) -> Result<()> {
-		unreachable!("PolkadotCli is never initialized; qed");
+	fn init<F>(
+		&self,
+		_support_url: &String,
+		_impl_version: &String,
+		_logger_hook: F,
+		_config: &sc_service::Configuration,
+	) -> Result<()>
+	where
+		F: FnOnce(&mut sc_cli::LoggerBuilder, &sc_service::Configuration),
+	{
+		unreachable!("AxiaCli is never initialized; qed");
 	}
 
 	fn chain_id(&self, is_dev: bool) -> Result<String> {

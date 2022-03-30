@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 use crate::{BalanceOf, Config, MappingWithDeposit, RegistrationInfo};
 use frame_support::{
@@ -38,7 +38,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 		let storage_item_prefix: &[u8] = b"MappingWithDeposit";
 
 		// Read all the data into memory.
-		// https://crates.parity.io/frame_support/storage/migration/fn.storage_key_iter.html
+		// https://crates.axia.io/frame_support/storage/migration/fn.storage_key_iter.html
 		let stored_data: Vec<_> = storage_key_iter::<
 			NimbusId,
 			RegistrationInfo<T::AccountId, BalanceOf<T>>,
@@ -52,7 +52,7 @@ impl<T: Config> OnRuntimeUpgrade for TwoXToBlake<T> {
 			.expect("There are between 0 and 2**64 mappings stored.");
 
 		// Now remove the old storage
-		// https://crates.parity.io/frame_support/storage/migration/fn.remove_storage_prefix.html
+		// https://crates.axia.io/frame_support/storage/migration/fn.remove_storage_prefix.html
 		remove_storage_prefix(pallet_prefix, storage_item_prefix, &[]);
 
 		// Assert that old storage is empty

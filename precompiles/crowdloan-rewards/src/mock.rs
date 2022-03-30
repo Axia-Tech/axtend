@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Test utilities
 use super::*;
@@ -20,7 +20,7 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use cumulus_primitives_core::{
 	relay_chain::BlockNumber as RelayChainBlockNumber, PersistedValidationData,
 };
-use cumulus_primitives_parachain_inherent::ParachainInherentData;
+use cumulus_primitives_allychain_inherent::AllychainInherentData;
 use cumulus_test_relay_sproof_builder::RelayStateSproofBuilder;
 use frame_support::{
 	construct_runtime,
@@ -39,9 +39,10 @@ use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	Perbill,
 };
-pub type AccountId = TestAccount;
+pub type AccountId = H160;
 pub type Balance = u128;
 pub type BlockNumber = u64;
+pub const PRECOMPILE_ADDRESS: u64 = 1;
 
 type UncheckedExtrinsic = frame_system::mocking::MockUncheckedExtrinsic<Runtime>;
 type Block = frame_system::mocking::MockBlock<Runtime>;
@@ -57,12 +58,12 @@ construct_runtime!(
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
 		Evm: pallet_evm::{Pallet, Call, Storage, Event<T>},
 		Timestamp: pallet_timestamp::{Pallet, Call, Storage, Inherent},
-		ParachainSystem: cumulus_pallet_parachain_system::{Pallet, Call, Storage, Inherent, Event<T>},
+		AllychainSystem: cumulus_pallet_allychain_system::{Pallet, Call, Storage, Inherent, Event<T>},
 		Crowdloan: pallet_crowdloan_rewards::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
-// FRom https://github.com/PureStake/moonbeam/pull/518. Merge to common once is merged
+// FRom https://github.com/PureStake/axtend/pull/518. Merge to common once is merged
 #[derive(
 	Eq,
 	PartialEq,
@@ -84,22 +85,23 @@ pub enum TestAccount {
 	Bob,
 	Charlie,
 	Bogus,
+	Precompile,
+}
+
+/// And ipmlementation of Frontier's AddressMapping trait for Axtend Accounts.
+/// This is basically identical to Frontier's own IdentityAddressMapping, but it works for any type
+/// that is Into<H160> like AccountId20 for example.
+pub struct IntoAddressMapping;
+
+impl<T: From<H160>> AddressMapping<T> for IntoAddressMapping {
+	fn into_account_id(address: H160) -> T {
+		address.into()
+	}
 }
 
 impl Default for TestAccount {
 	fn default() -> Self {
 		Self::Bogus
-	}
-}
-
-impl AddressMapping<TestAccount> for TestAccount {
-	fn into_account_id(h160_account: H160) -> TestAccount {
-		match h160_account {
-			a if a == H160::repeat_byte(0xAA) => Self::Alice,
-			a if a == H160::repeat_byte(0xBB) => Self::Bob,
-			a if a == H160::repeat_byte(0xCC) => Self::Charlie,
-			_ => Self::Bogus,
-		}
 	}
 }
 
@@ -109,19 +111,20 @@ impl From<TestAccount> for H160 {
 			TestAccount::Alice => H160::repeat_byte(0xAA),
 			TestAccount::Bob => H160::repeat_byte(0xBB),
 			TestAccount::Charlie => H160::repeat_byte(0xCC),
+			TestAccount::Precompile => H160::from_low_u64_be(PRECOMPILE_ADDRESS),
 			TestAccount::Bogus => Default::default(),
 		}
 	}
 }
 
 parameter_types! {
-	pub ParachainId: cumulus_primitives_core::ParaId = 100.into();
+	pub AllychainId: cumulus_primitives_core::ParaId = 100.into();
 }
 
-impl cumulus_pallet_parachain_system::Config for Runtime {
-	type SelfParaId = ParachainId;
+impl cumulus_pallet_allychain_system::Config for Runtime {
+	type SelfParaId = AllychainId;
 	type Event = Event;
-	type OnValidationData = ();
+	type OnSystemEvent = ();
 	type OutboundXcmpMessageSource = ();
 	type XcmpMessageHandler = ();
 	type ReservedXcmpWeight = ();
@@ -142,7 +145,7 @@ impl frame_system::Config for Runtime {
 	type Call = Call;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = TestAccount;
+	type AccountId = H160;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
 	type Event = Event;
@@ -156,7 +159,8 @@ impl frame_system::Config for Runtime {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
+	type OnSetCode = cumulus_pallet_allychain_system::AllychainSetCode<Self>;
+	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 parameter_types! {
 	pub const ExistentialDeposit: u128 = 0;
@@ -213,9 +217,9 @@ parameter_types! {
 impl pallet_evm::Config for Runtime {
 	type FeeCalculator = ();
 	type GasWeightMapping = ();
-	type CallOrigin = EnsureAddressRoot<TestAccount>;
-	type WithdrawOrigin = EnsureAddressNever<TestAccount>;
-	type AddressMapping = TestAccount;
+	type CallOrigin = EnsureAddressRoot<AccountId>;
+	type WithdrawOrigin = EnsureAddressNever<AccountId>;
+	type AddressMapping = IntoAddressMapping;
 	type Currency = Balances;
 	type Event = Event;
 	type Runner = pallet_evm::runner::stack::Runner<Self>;
@@ -226,6 +230,7 @@ impl pallet_evm::Config for Runtime {
 	type BlockGasLimit = ();
 	type BlockHashMapping = pallet_evm::SubstrateBlockHashMapping<Self>;
 	type FindAuthor = ();
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -262,7 +267,7 @@ impl pallet_crowdloan_rewards::Config for Runtime {
 
 	type VestingBlockNumber = cumulus_primitives_core::relay_chain::BlockNumber;
 	type VestingBlockProvider =
-		cumulus_pallet_parachain_system::RelaychainBlockNumberProvider<Self>;
+		cumulus_pallet_allychain_system::RelaychainBlockNumberProvider<Self>;
 	type WeightInfo = ();
 }
 pub(crate) struct ExtBuilder {
@@ -326,7 +331,7 @@ pub(crate) fn roll_to(n: u64) {
 		};
 		let inherent_data = {
 			let mut inherent_data = InherentData::default();
-			let system_inherent_data = ParachainInherentData {
+			let system_inherent_data = AllychainInherentData {
 				validation_data: vfp.clone(),
 				relay_chain_state,
 				downward_messages: Default::default(),
@@ -334,19 +339,19 @@ pub(crate) fn roll_to(n: u64) {
 			};
 			inherent_data
 				.put_data(
-					cumulus_primitives_parachain_inherent::INHERENT_IDENTIFIER,
+					cumulus_primitives_allychain_inherent::INHERENT_IDENTIFIER,
 					&system_inherent_data,
 				)
 				.expect("failed to put VFP inherent");
 			inherent_data
 		};
 
-		ParachainSystem::on_initialize(System::block_number());
-		ParachainSystem::create_inherent(&inherent_data)
+		AllychainSystem::on_initialize(System::block_number());
+		AllychainSystem::create_inherent(&inherent_data)
 			.expect("got an inherent")
 			.dispatch_bypass_filter(RawOrigin::None.into())
 			.expect("dispatch succeeded");
-		ParachainSystem::on_finalize(System::block_number());
+		AllychainSystem::on_finalize(System::block_number());
 
 		Balances::on_finalize(System::block_number());
 		System::on_finalize(System::block_number());

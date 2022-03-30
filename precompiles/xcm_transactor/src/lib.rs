@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Precompile to xcm transactor runtime methods via the EVM
 
@@ -188,7 +188,7 @@ where
 		let inner_call = input.read::<Bytes>(gasometer)?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
-		// moonbeam, as we are using IdentityMapping
+		// axtend, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative_multilocation {
 			dest: transactor,
@@ -227,7 +227,7 @@ where
 		let to_account = Runtime::AddressMapping::into_account_id(to_address);
 
 		// We convert the address into a currency
-		// This involves a DB read in moonbeam, hence the db Read
+		// This involves a DB read in axtend, hence the db Read
 		gasometer.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
 		let currency_id: <Runtime as xcm_transactor::Config>::CurrencyId =
 			Runtime::account_to_currency_id(to_account)
@@ -240,7 +240,7 @@ where
 		let inner_call = input.read::<Bytes>(gasometer)?;
 
 		// Depending on the Runtime, this might involve a DB read. This is not the case in
-		// moonbeam, as we are using IdentityMapping
+		// axtend, as we are using IdentityMapping
 		let origin = Runtime::AddressMapping::into_account_id(context.caller);
 		let call = xcm_transactor::Call::<Runtime>::transact_through_derivative {
 			dest: transactor,

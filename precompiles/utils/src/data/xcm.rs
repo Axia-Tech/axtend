@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Encoding of XCM types for solidity
 
@@ -43,11 +43,11 @@ pub(crate) fn network_id_to_bytes(network_id: NetworkId) -> Vec<u8> {
 			encoded.append(&mut name);
 			encoded
 		}
-		NetworkId::Polkadot => {
+		NetworkId::Axia => {
 			encoded.push(2u8);
 			encoded
 		}
-		NetworkId::Kusama => {
+		NetworkId::AxiaTest => {
 			encoded.push(3u8);
 			encoded
 		}
@@ -72,8 +72,8 @@ pub(crate) fn network_id_from_bytes(
 		1 => Ok(NetworkId::Named(
 			encoded_network_id.read_till_end(gasometer)?.to_vec(),
 		)),
-		2 => Ok(NetworkId::Polkadot),
-		3 => Ok(NetworkId::Kusama),
+		2 => Ok(NetworkId::Axia),
+		3 => Ok(NetworkId::AxiaTest),
 		_ => Err(gasometer.revert("Non-valid Network Id")),
 	}
 }
@@ -97,11 +97,11 @@ impl EvmData for Junction {
 		// The firs byte selects the enum variant
 		match enum_selector[0] {
 			0 => {
-				// In the case of Junction::Parachain, we need 4 additional bytes
+				// In the case of Junction::Allychain, we need 4 additional bytes
 				let mut data: [u8; 4] = Default::default();
 				data.copy_from_slice(&encoded_junction.read_raw_bytes(gasometer, 4)?);
 				let para_id = u32::from_be_bytes(data);
-				Ok(Junction::Parachain(para_id))
+				Ok(Junction::Allychain(para_id))
 			}
 			1 => {
 				// In the case of Junction::AccountId32, we need 32 additional bytes plus NetworkId
@@ -156,7 +156,7 @@ impl EvmData for Junction {
 	fn write(writer: &mut EvmDataWriter, value: Self) {
 		let mut encoded: Vec<u8> = Vec::new();
 		let encoded_bytes: Bytes = match value {
-			Junction::Parachain(para_id) => {
+			Junction::Allychain(para_id) => {
 				encoded.push(0u8);
 				encoded.append(&mut para_id.to_be_bytes().to_vec());
 				encoded.as_slice().into()

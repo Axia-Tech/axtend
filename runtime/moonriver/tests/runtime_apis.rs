@@ -1,18 +1,18 @@
 // Copyright 2019-2022 PureStake Inc.
-// This file is part of Moonbeam.
+// This file is part of Axtend.
 
-// Moonbeam is free software: you can redistribute it and/or modify
+// Axtend is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-// Moonbeam is distributed in the hope that it will be useful,
+// Axtend is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 
 // You should have received a copy of the GNU General Public License
-// along with Moonbeam.  If not, see <http://www.gnu.org/licenses/>.
+// along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Moonriver Runtime Api Integration Tests
 
@@ -21,12 +21,11 @@ use common::*;
 
 use nimbus_primitives::NimbusId;
 use pallet_evm::{Account as EVMAccount, AddressMapping, FeeCalculator, GenesisAccount};
-use sp_core::{Public, H160, H256, U256};
+use sp_core::{ByteArray, H160, H256, U256};
 
 use fp_rpc::runtime_decl_for_EthereumRuntimeRPCApi::EthereumRuntimeRPCApi;
-use moonbeam_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
-use std::collections::BTreeMap;
-use std::str::FromStr;
+use axtend_rpc_primitives_txpool::runtime_decl_for_TxPoolRuntimeApi::TxPoolRuntimeApi;
+use std::{collections::BTreeMap, str::FromStr};
 
 #[test]
 fn ethereum_runtime_rpc_api_chain_id() {
@@ -87,7 +86,7 @@ fn ethereum_runtime_rpc_api_author() {
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
@@ -101,8 +100,8 @@ fn ethereum_runtime_rpc_api_author() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
-			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS)));
+			set_allychain_inherent_data();
+			run_to_block(2, Some(NimbusId::from_slice(&ALICE_NIMBUS).unwrap()));
 			assert_eq!(Runtime::author(), H160::from(ALICE));
 		});
 }
@@ -192,7 +191,7 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
@@ -207,7 +206,7 @@ fn ethereum_runtime_rpc_api_current_transaction_statuses() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
+			set_allychain_inherent_data();
 			// set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
@@ -224,7 +223,7 @@ fn ethereum_runtime_rpc_api_current_block() {
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
@@ -238,11 +237,11 @@ fn ethereum_runtime_rpc_api_current_block() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
+			set_allychain_inherent_data();
 			// set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			run_to_block(2, None);
 			let block = Runtime::current_block().expect("Block result.");
-			assert_eq!(block.header.number, U256::from(1));
+			assert_eq!(block.header.number, U256::from(1u8));
 		});
 }
 
@@ -255,7 +254,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 	ExtBuilder::default()
 		.with_collators(vec![(AccountId::from(ALICE), 1_000 * MOVR)])
 		.with_mappings(vec![(
-			NimbusId::from_slice(&ALICE_NIMBUS),
+			NimbusId::from_slice(&ALICE_NIMBUS).unwrap(),
 			AccountId::from(ALICE),
 		)])
 		.with_balances(vec![
@@ -270,7 +269,7 @@ fn ethereum_runtime_rpc_api_current_receipts() {
 		)])
 		.build()
 		.execute_with(|| {
-			set_parachain_inherent_data();
+			set_allychain_inherent_data();
 			// set_author(NimbusId::from_slice(&ALICE_NIMBUS));
 			let result =
 				Executive::apply_extrinsic(unchecked_eth_tx(VALID_ETH_TX)).expect("Apply result.");
