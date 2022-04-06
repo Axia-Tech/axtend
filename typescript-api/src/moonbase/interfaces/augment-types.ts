@@ -617,11 +617,11 @@ import type {
   AllychainInherentData,
   AllychainProposal,
   AllychainsInherentData,
-  ParathreadClaim,
-  ParathreadClaimQueue,
-  ParathreadEntry,
+  AllythreadClaim,
+  AllythreadClaimQueue,
+  AllythreadEntry,
   PersistedValidationData,
-  QueuedParathread,
+  QueuedAllythread,
   RegisteredAllychainInfo,
   RelayBlockNumber,
   RelayChainBlockNumber,
@@ -1751,9 +1751,9 @@ declare module "@axia/types/types/registry" {
     Parameter: Parameter;
     ParaPastCodeMeta: ParaPastCodeMeta;
     ParaScheduling: ParaScheduling;
-    ParathreadClaim: ParathreadClaim;
-    ParathreadClaimQueue: ParathreadClaimQueue;
-    ParathreadEntry: ParathreadEntry;
+    AllythreadClaim: AllythreadClaim;
+    AllythreadClaimQueue: AllythreadClaimQueue;
+    AllythreadEntry: AllythreadEntry;
     ParaValidatorIndex: ParaValidatorIndex;
     Pays: Pays;
     Peer: Peer;
@@ -1803,7 +1803,7 @@ declare module "@axia/types/types/registry" {
     QueryId: QueryId;
     QueryStatus: QueryStatus;
     QueueConfigData: QueueConfigData;
-    QueuedParathread: QueuedParathread;
+    QueuedAllythread: QueuedAllythread;
     Randomness: Randomness;
     Raw: Raw;
     RawAuraPreDigest: RawAuraPreDigest;
