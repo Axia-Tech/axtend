@@ -155,7 +155,7 @@ impl From<TestAccount> for H160 {
 pub type AssetId = u128;
 
 parameter_types! {
-	pub AllychainId: cumulus_primitives_core::ParaId = 100.into();
+	pub AllychainId: cumulus_primitives_core::AllyId = 100.into();
 }
 
 parameter_types! {

@@ -494,7 +494,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 		use frame_support::StorageHasher;
 		use parity_scale_codec::Encode;
 
-		let statemine_para_id = mock::StatemineParaIdInfo::get();
+		let statemine_para_id = mock::StatemineAllyIdInfo::get();
 		let statemine_assets_pallet = mock::StatemineAssetsInstanceInfo::get();
 
 		let statemine_multilocation = MockAssetType::Xcm(MultiLocation {
@@ -563,7 +563,7 @@ fn test_asset_manager_change_statemine_prefixes() {
 		// We run the migration
 		crate::migrations::ChangeStateminePrefixes::<
 			Test,
-			mock::StatemineParaIdInfo,
+			mock::StatemineAllyIdInfo,
 			mock::StatemineAssetsInstanceInfo,
 		>::on_runtime_upgrade();
 

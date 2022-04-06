@@ -100,7 +100,7 @@ parameter_types! {
 }
 
 parameter_types! {
-	pub const StatemineParaIdInfo: u32 = 1000u32;
+	pub const StatemineAllyIdInfo: u32 = 1000u32;
 	pub const StatemineAssetsInstanceInfo: u8 = 50u8;
 }
 

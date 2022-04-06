@@ -17,7 +17,7 @@
 //! Embedded specs for testing purposes, must be compiled with --features=test-spec
 use crate::chain_spec::moonbase::{testnet_genesis, ChainSpec};
 use crate::chain_spec::{get_from_seed, Extensions};
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::AllyId;
 use hex_literal::hex;
 use moonbase_runtime::{currency::UNIT, AccountId};
 use nimbus_primitives::NimbusId;
@@ -25,7 +25,7 @@ use sc_service::ChainType;
 
 /// Generate testing chain_spec for staking integration tests with accounts initialized for
 /// collating and nominating.
-pub fn staking_spec(para_id: ParaId) -> ChainSpec {
+pub fn staking_spec(para_id: AllyId) -> ChainSpec {
 	ChainSpec::from_genesis(
 		"Moonbase Development Testnet",
 		"staking",

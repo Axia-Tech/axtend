@@ -11,7 +11,7 @@
     "tokenSymbol": "GLMR"
   },
   "relayChain": "axia",
-  "paraId": 2004,
+  "allyId": 2004,
   "consensusEngine": null,
   "codeSubstitutes": {},
   "genesis": {

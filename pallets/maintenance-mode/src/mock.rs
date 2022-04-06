@@ -18,7 +18,7 @@
 use super::*;
 use crate as pallet_maintenance_mode;
 use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
+	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, AllyId, XcmpMessageHandler,
 };
 use frame_support::{
 	construct_runtime, parameter_types,
@@ -103,7 +103,7 @@ pub struct MaintenanceXcmpHandler;
 impl XcmpMessageHandler for MaintenanceXcmpHandler {
 	// This implementation makes messages be queued
 	// Since the limit is 0, messages are queued for next iteration
-	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+	fn handle_xcmp_messages<'a, I: Iterator<Item = (AllyId, RelayBlockNumber, &'a [u8])>>(
 		_iter: I,
 		_limit: Weight,
 	) -> Weight {
@@ -116,7 +116,7 @@ pub struct NormalXcmpHandler;
 impl XcmpMessageHandler for NormalXcmpHandler {
 	// This implementation makes messages be queued
 	// Since the limit is 0, messages are queued for next iteration
-	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+	fn handle_xcmp_messages<'a, I: Iterator<Item = (AllyId, RelayBlockNumber, &'a [u8])>>(
 		_iter: I,
 		_limit: Weight,
 	) -> Weight {

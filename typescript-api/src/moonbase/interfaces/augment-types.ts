@@ -607,7 +607,7 @@ import type {
   NewBidder,
   OutboundHrmpMessage,
   ParaGenesisArgs,
-  ParaId,
+  AllyId,
   ParaInfo,
   ParaLifecycle,
   ParaPastCodeMeta,
@@ -1745,7 +1745,7 @@ declare module "@axia/types/types/registry" {
     AllychainProposal: AllychainProposal;
     AllychainsInherentData: AllychainsInherentData;
     ParaGenesisArgs: ParaGenesisArgs;
-    ParaId: ParaId;
+    AllyId: AllyId;
     ParaInfo: ParaInfo;
     ParaLifecycle: ParaLifecycle;
     Parameter: Parameter;

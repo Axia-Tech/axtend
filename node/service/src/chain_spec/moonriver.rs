@@ -22,7 +22,7 @@
 #[cfg(test)]
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
 use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::AllyId;
 use hex_literal::hex;
 use moonriver_runtime::{
 	currency::MOVR, AccountId, AuthorFilterConfig, AuthorMappingConfig, Balance, BalancesConfig,
@@ -100,7 +100,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 
 /// Generate a default spec for the allychain service. Use this as a starting point when launching
 /// a custom chain.
-pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
+pub fn get_chain_spec(para_id: AllyId) -> ChainSpec {
 	ChainSpec::from_genesis(
 		// TODO Apps depends on this string to determine whether the chain is an ethereum compat
 		// or not. We should decide the proper strings, and update Apps accordingly.
@@ -204,7 +204,7 @@ pub fn testnet_genesis(
 	delegations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
 	crowdloan_fund_pot: Balance,
-	para_id: ParaId,
+	para_id: AllyId,
 	chain_id: u64,
 ) -> GenesisConfig {
 	// This is the simplest bytecode to revert without returning any data.

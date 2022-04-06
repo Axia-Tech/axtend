@@ -63,9 +63,7 @@ describeDevAxtend("Pallet Maintenance Mode - with sudo shouldn't work", (context
     ({ events } = await createBlockWithExtrinsic(
       context,
       alith,
-      context.axiaApi.tx.sudo.sudo(
-        context.axiaApi.tx.maintenanceMode.enterMaintenanceMode()
-      )
+      context.axiaApi.tx.sudo.sudo(context.axiaApi.tx.maintenanceMode.enterMaintenanceMode())
     ));
   });
 
@@ -531,9 +529,9 @@ describeDevAxtend(
 describeDevAxtend(
   "Pallet Maintenance Mode - xcmp messages should queue in maintenance mode",
   (context) => {
-    let sudoAccount, assetId, foreignParaId;
+    let sudoAccount, assetId, foreignAllyId;
     before("Register asset and go to maintenance", async function () {
-      foreignParaId = 2000;
+      foreignAllyId = 2000;
 
       const assetMetadata = {
         name: "FOREIGN",
@@ -543,7 +541,7 @@ describeDevAxtend(
       };
 
       const sourceLocation = {
-        XCM: { parents: 1, interior: { X1: { Allychain: foreignParaId } } },
+        XCM: { parents: 1, interior: { X1: { Allychain: foreignAllyId } } },
       };
 
       const keyring = new Keyring({ type: "ethereum" });
@@ -591,7 +589,7 @@ describeDevAxtend(
     it("should queue xcm with maintenance mode and execute when off", async function () {
       // Send RPC call to inject XCMP message
       // You can provide a message, but if you don't a downward transfer is the default
-      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreignParaId, []]);
+      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreignAllyId, []]);
 
       // Create a block in which the XCM should be executed
       await context.createBlock();
@@ -611,9 +609,9 @@ describeDevAxtend(
       await context.createBlock();
 
       // Make sure the state has ALITH's to foreign assets tokens
-      alithBalance = (
-        (await context.axiaApi.query.assets.account(assetId, ALITH)) as any
-      ).unwrap()["balance"];
+      alithBalance = ((await context.axiaApi.query.assets.account(assetId, ALITH)) as any).unwrap()[
+        "balance"
+      ];
 
       expect(alithBalance.toBigInt()).to.eq(BigInt(10000000000000));
     });

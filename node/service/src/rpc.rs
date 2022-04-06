@@ -25,7 +25,7 @@ use sp_block_builder::BlockBuilder;
 
 use crate::client::RuntimeApiCollection;
 use cli_opt::EthApi as EthApiCmd;
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::AllyId;
 use fc_mapping_sync::{MappingSyncWorker, SyncStrategy};
 use fc_rpc::{
 	EthApi, EthApiServer, EthBlockDataCache, EthFilterApi, EthFilterApiServer, EthPubSubApi,
@@ -94,7 +94,7 @@ pub struct FullDeps<C, P, A: ChainApi, BE> {
 	/// Fee history cache.
 	pub fee_history_cache: FeeHistoryCache,
 	/// Channels for manual xcm messages (downward, hrmp)
-	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(ParaId, Vec<u8>)>)>,
+	pub xcm_senders: Option<(flume::Sender<Vec<u8>>, flume::Sender<(AllyId, Vec<u8>)>)>,
 	/// Ethereum data access overrides.
 	pub overrides: Arc<OverrideHandle<Block>>,
 	/// Cache for Ethereum block data.

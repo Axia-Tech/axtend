@@ -1491,7 +1491,7 @@ declare module "@axia/api-base/types/storage" {
     };
     xcmpQueue: {
       /**
-       * Inbound aggregate XCMP messages. It can only be one per ParaId/block.
+       * Inbound aggregate XCMP messages. It can only be one per AllyId/block.
        */
       inboundXcmpMessages: AugmentedQuery<
         ApiType,

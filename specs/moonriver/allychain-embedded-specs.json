@@ -11,7 +11,7 @@
     "SS58Prefix": 1285
   },
   "relayChain": "axctest",
-  "paraId": 2023,
+  "allyId": 2023,
   "consensusEngine": null,
   "codeSubstitutes": {},
   "genesis": {

@@ -70,7 +70,7 @@ export const rpcDefinitions: Record<string, Record<string, DefinitionRpc | Defin
     injectHrmpMessage: {
       description: "Inject an HRMP message from a dedicated channel from a sibling allychain",
       params: [
-        { name: "sender", type: "ParaId" },
+        { name: "sender", type: "AllyId" },
         { name: "message", type: "Vec<u8>" },
       ],
       type: "Result<()>",
@@ -189,7 +189,7 @@ const TYPES_19_35: RegistryTypes = {
     validationData: "PersistedValidationData",
     relayChain_state: "StorageProof",
     downwardMessages: "Vec<InboundDownwardMessage>",
-    horizontalMessages: "BTreeMap<ParaId, Vec<InboundHrmpMessage>>",
+    horizontalMessages: "BTreeMap<AllyId, Vec<InboundHrmpMessage>>",
   },
   RoundInfo: {
     current: "RoundIndex",

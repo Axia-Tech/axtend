@@ -13,7 +13,7 @@
 
 // You should have received a copy of the GNU General Public License
 // along with Axtend.  If not, see <http://www.gnu.org/licenses/>.
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::AllyId;
 use cumulus_primitives_core::XcmpMessageFormat;
 use futures::{future::BoxFuture, FutureExt as _};
 use jsonrpc_core::Result as RpcResult;
@@ -40,20 +40,20 @@ pub trait ManualXcmApi {
 	/// https://github.com/axiatech/cumulus/blob/c308c01b/pallets/allychain-system/src/lib.rs#L204
 	/// Neither this RPC, nor the mock inherent data provider make any attempt to enforce this
 	/// constraint. In fact, violating it may be useful for testing.
-	/// The method accepts a sending paraId and a bytearray representing an arbitrary message as
+	/// The method accepts a sending allyId and a bytearray representing an arbitrary message as
 	/// parameters. If you provide an emtpy byte array, then a default message representing a
-	/// transfer of the sending paraId's native token will be injected.
+	/// transfer of the sending allyId's native token will be injected.
 	#[rpc(name = "xcm_injectHrmpMessage")]
 	fn inject_hrmp_message(
 		&self,
-		sender: ParaId,
+		sender: AllyId,
 		message: Vec<u8>,
 	) -> BoxFuture<'static, RpcResult<()>>;
 }
 
 pub struct ManualXcm {
 	pub downward_message_channel: flume::Sender<Vec<u8>>,
-	pub hrmp_message_channel: flume::Sender<(ParaId, Vec<u8>)>,
+	pub hrmp_message_channel: flume::Sender<(AllyId, Vec<u8>)>,
 }
 
 impl ManualXcmApi for ManualXcm {
@@ -100,7 +100,7 @@ impl ManualXcmApi for ManualXcm {
 
 	fn inject_hrmp_message(
 		&self,
-		sender: ParaId,
+		sender: AllyId,
 		msg: Vec<u8>,
 	) -> BoxFuture<'static, RpcResult<()>> {
 		let hrmp_message_channel = self.hrmp_message_channel.clone();

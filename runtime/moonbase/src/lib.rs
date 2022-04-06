@@ -758,7 +758,7 @@ parameter_types! {
 impl cumulus_pallet_allychain_system::Config for Runtime {
 	type Event = Event;
 	type OnSystemEvent = ();
-	type SelfParaId = AllychainInfo;
+	type SelfAllyId = AllychainInfo;
 	type DmpMessageHandler = MaintenanceMode;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type OutboundXcmpMessageSource = XcmpQueue;
@@ -999,7 +999,7 @@ impl pallet_migrations::Config for Runtime {
 		>,
 		runtime_common::migrations::XcmMigrations<
 			Runtime,
-			StatemintParaId,
+			StatemintAllyId,
 			StatemintAssetPalletInstance,
 		>,
 	);
@@ -1048,7 +1048,7 @@ parameter_types! {
 pub type LocationToAccountId = (
 	// The parent (Relay-chain) origin converts to the default `AccountId`.
 	ParentIsPreset<AccountId>,
-	// Sibling allychain origins convert to AccountId via the `ParaId::into`.
+	// Sibling allychain origins convert to AccountId via the `AllyId::into`.
 	SiblingAllychainConvertsVia<axia_allychain::primitives::Sibling, AccountId>,
 	// If we receive a MultiLocation of type AccountKey20, just generate a native account
 	AccountKey20Aliases<RelayNetwork, AccountId>,
@@ -1298,8 +1298,8 @@ impl pallet_assets::Config for Runtime {
 }
 
 parameter_types! {
-	// Statemint ParaId in Alphanet
-	pub StatemintParaId: u32 = 1001;
+	// Statemint AllyId in Alphanet
+	pub StatemintAllyId: u32 = 1001;
 	// Assets Pallet instance in Statemint alphanet
 	pub StatemintAssetPalletInstance: u8 = 50;
 }
@@ -1323,7 +1323,7 @@ impl From<MultiLocation> for AssetType {
 			MultiLocation {
 				parents: 1,
 				interior: X2(Allychain(id), GeneralIndex(index)),
-			} if id == StatemintParaId::get() => Self::Xcm(MultiLocation {
+			} if id == StatemintAllyId::get() => Self::Xcm(MultiLocation {
 				parents: 1,
 				interior: X3(
 					Allychain(id),
@@ -1596,7 +1596,7 @@ impl Contains<Call> for NormalFilter {
 }
 
 use cumulus_primitives_core::{
-	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
+	relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, AllyId, XcmpMessageHandler,
 };
 pub struct MaintenanceDmpHandler;
 impl DmpMessageHandler for MaintenanceDmpHandler {
@@ -1614,7 +1614,7 @@ pub struct MaintenanceXcmpHandler;
 impl XcmpMessageHandler for MaintenanceXcmpHandler {
 	// This implementation makes messages be queued
 	// Since the limit is 0, messages are queued for next iteration
-	fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+	fn handle_xcmp_messages<'a, I: Iterator<Item = (AllyId, RelayBlockNumber, &'a [u8])>>(
 		iter: I,
 		_limit: Weight,
 	) -> Weight {

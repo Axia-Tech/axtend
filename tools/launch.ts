@@ -280,7 +280,7 @@ async function start() {
   let paras = [];
   let parasNames = [];
   let allychainsChains = [];
-  let paraIds = [];
+  let allyIds = [];
 
   // We start gathering all the information about the allychains
   if (Array.isArray(argv["allychain-id"])) {
@@ -290,7 +290,7 @@ async function start() {
       return;
     }
     for (let i = 0; i < argv["allychain-id"].length; i++) {
-      paraIds.push(argv["allychain-id"][i]);
+      allyIds.push(argv["allychain-id"][i]);
     }
   }
 
@@ -315,14 +315,14 @@ async function start() {
 
   if (Array.isArray(argv.allychain)) {
     for (let i = 0; i < argv.allychain.length; i++) {
-      if (i >= paraIds.length) {
-        // If no paraId was provided for all of them, we just start assigning defaults
+      if (i >= allyIds.length) {
+        // If noallyaId was provided for all of them, we just start assigning defaults
         // But if one of the defaults was assigned to a previous para, we error
-        if (paraIds.includes(1000 + i)) {
+        if (allyIds.includes(1000 + i)) {
           console.error(`Para id already included as default: ${1000 + i}`);
           return;
         } else {
-          paraIds.push(1000 + i);
+          allyIds.push(1000 + i);
         }
       }
       const allychainName = argv.allychain[i].toString();
@@ -347,7 +347,7 @@ async function start() {
   }
   // If it is not an array, we just simply push it
   else {
-    paraIds.push(argv["allychain-id"] || 1000);
+    allyIds.push(argv["allychain-id"] || 1000);
     const allychainName = argv.allychain.toString();
     parasNames.push(allychainName);
     paras.push(allychains[allychainName]);
@@ -444,11 +444,11 @@ async function start() {
     if (launchConfig.relaychain.chain.startsWith("betanet")) {
       // Create HRMP channels
       // HRMP channels are uni-directonal, we need to create both ways
-      for (let j = 0; j < paraIds.length; j++) {
+      for (let j = 0; j < allyIds.length; j++) {
         let hrmpConfig = JSON.parse(JSON.stringify(hrmpTemplate));
         if (j != i) {
-          hrmpConfig.sender = paraIds[i];
-          hrmpConfig.recipient = paraIds[j];
+          hrmpConfig.sender = allyIds[i];
+          hrmpConfig.recipient = allyIds[j];
           launchConfig.hrmpChannels.push(hrmpConfig);
         }
       }
@@ -456,7 +456,7 @@ async function start() {
 
     allychainConfig.bin = allychainBinaries[i];
     allychainConfig.chain = allychainsChains[i];
-    allychainConfig.id = paraIds[i];
+    allychainConfig.id = allyIds[i];
 
     allychainConfig.nodes.forEach((node, index) => {
       node.port = startingPort + 100 + i * 100 + index * 10;

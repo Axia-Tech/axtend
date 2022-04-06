@@ -56,7 +56,7 @@ pub use pallet::*;
 pub mod pallet {
 	#[cfg(feature = "xcm-support")]
 	use cumulus_primitives_core::{
-		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, ParaId, XcmpMessageHandler,
+		relay_chain::BlockNumber as RelayBlockNumber, DmpMessageHandler, AllyId, XcmpMessageHandler,
 	};
 	#[cfg(feature = "xcm-support")]
 	use sp_std::vec::Vec;
@@ -240,7 +240,7 @@ pub mod pallet {
 
 	#[cfg(feature = "xcm-support")]
 	impl<T: Config> XcmpMessageHandler for Pallet<T> {
-		fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+		fn handle_xcmp_messages<'a, I: Iterator<Item = (AllyId, RelayBlockNumber, &'a [u8])>>(
 			iter: I,
 			limit: Weight,
 		) -> Weight {

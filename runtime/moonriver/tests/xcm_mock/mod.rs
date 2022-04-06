@@ -18,7 +18,7 @@ pub mod allychain;
 pub mod relay_chain;
 pub mod statemine_like;
 
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::AllyId;
 use axia_allychain::primitives::AccountIdConversion;
 use sp_runtime::AccountId32;
 use xcm_simulator::{decl_test_network, decl_test_allychain, decl_test_relay_chain};
@@ -30,7 +30,7 @@ pub const PARAALICE: [u8; 20] = [1u8; 20];
 pub const RELAYALICE: AccountId32 = AccountId32::new([0u8; 32]);
 
 pub fn para_a_account() -> AccountId32 {
-	ParaId::from(1).into_account()
+	AllyId::from(1).into_account()
 }
 
 pub fn evm_account() -> H160 {

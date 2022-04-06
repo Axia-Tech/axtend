@@ -9,7 +9,7 @@ import { createBlockWithExtrinsic } from "../util/substrate-rpc";
 import { customWeb3Request } from "../util/providers";
 import type { XcmVersionedXcm } from "@axia/types/lookup";
 
-import { ParaId, XcmpMessageFormat } from "@axia/types/interfaces";
+import { AllyId, XcmpMessageFormat } from "@axia/types/interfaces";
 
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
@@ -93,9 +93,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
     expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
-    const registeredAsset = (
-      (await context.axiaApi.query.assets.asset(assetId)) as any
-    ).unwrap();
+    const registeredAsset = ((await context.axiaApi.query.assets.asset(assetId)) as any).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -160,9 +158,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
     expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
-    const registeredAsset = (
-      (await context.axiaApi.query.assets.asset(assetId)) as any
-    ).unwrap();
+    const registeredAsset = ((await context.axiaApi.query.assets.asset(assetId)) as any).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -288,9 +284,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
     expect(events[4].method.toString()).to.eq("ExtrinsicSuccess");
 
     // check asset in storage
-    const registeredAsset = (
-      (await context.axiaApi.query.assets.asset(assetId)) as any
-    ).unwrap();
+    const registeredAsset = ((await context.axiaApi.query.assets.asset(assetId)) as any).unwrap();
     expect(registeredAsset.owner.toHex()).to.eq(palletId.toLowerCase());
   });
 
@@ -391,7 +385,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
 describeDevAxtend("Mock XCM - receive horizontal transfer of DEV", (context) => {
   let alith: KeyringPair;
   let random: KeyringPair;
-  let paraId: ParaId;
+  let allyId: AllyId;
   let transferredBalance;
   let sovereignAddress;
 
@@ -400,9 +394,9 @@ describeDevAxtend("Mock XCM - receive horizontal transfer of DEV", (context) => 
     alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
     random = keyringEth.addFromUri(RANDOM_PRIV_KEY, null, "ethereum");
 
-    paraId = context.axiaApi.createType("ParaId", 2000) as any;
+    allyId = context.axiaApi.createType("AllyId", 2000) as any;
     sovereignAddress = u8aToHex(
-      new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
+      new Uint8Array([...new TextEncoder().encode("sibl"), ...allyId.toU8a()])
     ).padEnd(42, "0");
 
     transferredBalance = new BN(100000000000000);
@@ -420,7 +414,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer of DEV", (context) => 
   });
 
   it("Should receive MOVR from para Id 2000", async function () {
-    let ownParaId = (await context.axiaApi.query.allychainInfo.allychainId()) as any;
+    let ownAllyId = (await context.axiaApi.query.allychainInfo.allychainId()) as any;
     // Get Pallet balances index
     const metadata = await context.axiaApi.rpc.state.getMetadata();
     const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
@@ -442,7 +436,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer of DEV", (context) => 
                 Concrete: {
                   parents: 1,
                   interior: {
-                    X2: [{ Allychain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+                    X2: [{ Allychain: ownAllyId }, { PalletInstance: balancesPalletIndex }],
                   },
                 },
               },
@@ -458,7 +452,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer of DEV", (context) => 
                 Concrete: {
                   parents: 1,
                   interior: {
-                    X2: [{ Allychain: ownParaId }, { PalletInstance: balancesPalletIndex }],
+                    X2: [{ Allychain: ownAllyId }, { PalletInstance: balancesPalletIndex }],
                   },
                 },
               },
@@ -514,136 +508,133 @@ describeDevAxtend("Mock XCM - receive horizontal transfer of DEV", (context) => 
   });
 });
 
-describeDevAxtend(
-  "Mock XCM - receive horizontal transfer of DEV with new reanchor",
-  (context) => {
-    let alith: KeyringPair;
-    let random: KeyringPair;
-    let paraId: ParaId;
-    let transferredBalance;
-    let sovereignAddress;
+describeDevAxtend("Mock XCM - receive horizontal transfer of DEV with new reanchor", (context) => {
+  let alith: KeyringPair;
+  let random: KeyringPair;
+  let allyId: AllyId;
+  let transferredBalance;
+  let sovereignAddress;
 
-    before("Should send DEV to the allychain sovereign", async function () {
-      const keyringEth = new Keyring({ type: "ethereum" });
-      alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
-      random = keyringEth.addFromUri(RANDOM_PRIV_KEY, null, "ethereum");
+  before("Should send DEV to the allychain sovereign", async function () {
+    const keyringEth = new Keyring({ type: "ethereum" });
+    alith = keyringEth.addFromUri(ALITH_PRIV_KEY, null, "ethereum");
+    random = keyringEth.addFromUri(RANDOM_PRIV_KEY, null, "ethereum");
 
-      paraId = context.axiaApi.createType("ParaId", 2000) as any;
-      sovereignAddress = u8aToHex(
-        new Uint8Array([...new TextEncoder().encode("sibl"), ...paraId.toU8a()])
-      ).padEnd(42, "0");
+    allyId = context.axiaApi.createType("AllyId", 2000) as any;
+    sovereignAddress = u8aToHex(
+      new Uint8Array([...new TextEncoder().encode("sibl"), ...allyId.toU8a()])
+    ).padEnd(42, "0");
 
-      transferredBalance = new BN(100000000000000);
+    transferredBalance = new BN(100000000000000);
 
-      // We first fund allychain 2000 sovreign account
-      await createBlockWithExtrinsic(
-        context,
-        alith,
-        context.axiaApi.tx.balances.transfer(sovereignAddress, transferredBalance)
-      );
-      let balance = (
-        (await context.axiaApi.query.system.account(sovereignAddress)) as any
-      ).data.free.toBigInt();
-      expect(balance.toString()).to.eq(transferredBalance.toString());
-    });
+    // We first fund allychain 2000 sovreign account
+    await createBlockWithExtrinsic(
+      context,
+      alith,
+      context.axiaApi.tx.balances.transfer(sovereignAddress, transferredBalance)
+    );
+    let balance = (
+      (await context.axiaApi.query.system.account(sovereignAddress)) as any
+    ).data.free.toBigInt();
+    expect(balance.toString()).to.eq(transferredBalance.toString());
+  });
 
-    it("Should receive MOVR from para Id 2000 with new reanchor logic", async function () {
-      let ownParaId = (await context.axiaApi.query.allychainInfo.allychainId()) as any;
-      // Get Pallet balances index
-      const metadata = await context.axiaApi.rpc.state.getMetadata();
-      const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
-        (pallet) => {
-          return pallet.name === "Balances";
-        }
-      ).index;
-      // We are charging 100_000_000 weight for every XCM instruction
-      // We are executing 4 instructions
-      // 100_000_000 * 4 * 50000 = 20000000000000
-      // We are charging 20 micro DEV for this operation
-      // The rest should be going to the deposit account
-      let xcmMessage = {
-        V2: [
-          {
-            WithdrawAsset: [
-              {
+  it("Should receive MOVR from para Id 2000 with new reanchor logic", async function () {
+    let ownAllyId = (await context.axiaApi.query.allychainInfo.allychainId()) as any;
+    // Get Pallet balances index
+    const metadata = await context.axiaApi.rpc.state.getMetadata();
+    const balancesPalletIndex = (metadata.asLatest.toHuman().pallets as Array<any>).find(
+      (pallet) => {
+        return pallet.name === "Balances";
+      }
+    ).index;
+    // We are charging 100_000_000 weight for every XCM instruction
+    // We are executing 4 instructions
+    // 100_000_000 * 4 * 50000 = 20000000000000
+    // We are charging 20 micro DEV for this operation
+    // The rest should be going to the deposit account
+    let xcmMessage = {
+      V2: [
+        {
+          WithdrawAsset: [
+            {
+              // This is the new reanchored logic
+              id: {
+                Concrete: {
+                  parents: 0,
+                  interior: {
+                    X1: { PalletInstance: balancesPalletIndex },
+                  },
+                },
+              },
+              fun: { Fungible: transferredBalance },
+            },
+          ],
+        },
+        { ClearOrigin: null },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
                 // This is the new reanchored logic
-                id: {
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
+                Concrete: {
+                  parents: 0,
+                  interior: {
+                    X1: { PalletInstance: balancesPalletIndex },
                   },
                 },
-                fun: { Fungible: transferredBalance },
               },
-            ],
+              fun: { Fungible: transferredBalance },
+            },
+            weightLimit: { Limited: new BN(4000000000) },
           },
-          { ClearOrigin: null },
-          {
-            BuyExecution: {
-              fees: {
-                id: {
-                  // This is the new reanchored logic
-                  Concrete: {
-                    parents: 0,
-                    interior: {
-                      X1: { PalletInstance: balancesPalletIndex },
-                    },
-                  },
-                },
-                fun: { Fungible: transferredBalance },
-              },
-              weightLimit: { Limited: new BN(4000000000) },
+        },
+        {
+          DepositAsset: {
+            assets: { Wild: "All" },
+            maxAssets: new BN(1),
+            beneficiary: {
+              parents: 0,
+              interior: { X1: { AccountKey20: { network: "Any", key: random.address } } },
             },
           },
-          {
-            DepositAsset: {
-              assets: { Wild: "All" },
-              maxAssets: new BN(1),
-              beneficiary: {
-                parents: 0,
-                interior: { X1: { AccountKey20: { network: "Any", key: random.address } } },
-              },
-            },
-          },
-        ],
-      };
-      const xcmpFormat: XcmpMessageFormat = context.axiaApi.createType(
-        "XcmpMessageFormat",
-        "ConcatenatedVersionedXcm"
-      ) as any;
-      const receivedMessage: XcmVersionedXcm = context.axiaApi.createType(
-        "XcmVersionedXcm",
-        xcmMessage
-      ) as any;
+        },
+      ],
+    };
+    const xcmpFormat: XcmpMessageFormat = context.axiaApi.createType(
+      "XcmpMessageFormat",
+      "ConcatenatedVersionedXcm"
+    ) as any;
+    const receivedMessage: XcmVersionedXcm = context.axiaApi.createType(
+      "XcmVersionedXcm",
+      xcmMessage
+    ) as any;
 
-      const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
+    const totalMessage = [...xcmpFormat.toU8a(), ...receivedMessage.toU8a()];
 
-      // Send RPC call to inject XCM message
-      // We will set a specific message knowing that it should mint the statemint asset
-      await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [2000, totalMessage]);
+    // Send RPC call to inject XCM message
+    // We will set a specific message knowing that it should mint the statemint asset
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [2000, totalMessage]);
 
-      // Create a block in which the XCM will be executed
-      await context.createBlock();
+    // Create a block in which the XCM will be executed
+    await context.createBlock();
 
-      // We should expect sovereign balance to be 0, since we have transferred the full amount
-      let balance = (
-        (await context.axiaApi.query.system.account(sovereignAddress)) as any
-      ).data.free.toBigInt();
-      expect(balance.toString()).to.eq(0n.toString());
+    // We should expect sovereign balance to be 0, since we have transferred the full amount
+    let balance = (
+      (await context.axiaApi.query.system.account(sovereignAddress)) as any
+    ).data.free.toBigInt();
+    expect(balance.toString()).to.eq(0n.toString());
 
-      // In the case of the random address: we have transferred 100000000000000,
-      // but 20000000000000 have been deducted
-      // for weight payment
-      let randomBalance = (
-        (await context.axiaApi.query.system.account(random.address)) as any
-      ).data.free.toBigInt();
-      let expectedRandomBalance = 80000000000000n;
-      expect(randomBalance.toString()).to.eq(expectedRandomBalance.toString());
-    });
-  }
-);
+    // In the case of the random address: we have transferred 100000000000000,
+    // but 20000000000000 have been deducted
+    // for weight payment
+    let randomBalance = (
+      (await context.axiaApi.query.system.account(random.address)) as any
+    ).data.free.toBigInt();
+    let expectedRandomBalance = 80000000000000n;
+    expect(randomBalance.toString()).to.eq(expectedRandomBalance.toString());
+  });
+});
 
 describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
   let assetIdZero: string;
@@ -705,11 +696,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
         context,
         alith,
         context.axiaApi.tx.sudo.sudo(
-          context.axiaApi.tx.assetManager.setAssetUnitsPerSecond(
-            statemintLocationAssetOne,
-            0,
-            0
-          )
+          context.axiaApi.tx.assetManager.setAssetUnitsPerSecond(statemintLocationAssetOne, 0, 0)
         )
       );
       expect(events[1].method.toString()).to.eq("UnitsPerSecondChanged");

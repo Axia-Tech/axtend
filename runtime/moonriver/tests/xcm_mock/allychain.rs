@@ -35,7 +35,7 @@ use sp_std::{convert::TryFrom, prelude::*};
 use xcm::{latest::prelude::*, Version as XcmVersion, VersionedXcm};
 
 use axia_core_primitives::BlockNumber as RelayBlockNumber;
-use axia_allychain::primitives::{Id as ParaId, Sibling};
+use axia_allychain::primitives::{Id as AllyId, Sibling};
 use xcm::latest::{
 	AssetId as XcmAssetId, Error as XcmError, ExecuteXcm,
 	Junction::{PalletInstance, Allychain},
@@ -143,7 +143,7 @@ impl pallet_assets::Config for Runtime {
 pub type LocationToAccountId = (
 	// The parent (Relay-chain) origin converts to the default `AccountId`.
 	ParentIsPreset<AccountId>,
-	// Sibling allychain origins convert to AccountId via the `ParaId::into`.
+	// Sibling allychain origins convert to AccountId via the `AllyId::into`.
 	SiblingAllychainConvertsVia<Sibling, AccountId>,
 	AccountKey20Aliases<RelayNetwork, AccountId>,
 );
@@ -429,10 +429,10 @@ pub mod mock_msg_queue {
 
 	#[pallet::storage]
 	#[pallet::getter(fn allychain_id)]
-	pub(super) type AllychainId<T: Config> = StorageValue<_, ParaId, ValueQuery>;
+	pub(super) type AllychainId<T: Config> = StorageValue<_, AllyId, ValueQuery>;
 
-	impl<T: Config> Get<ParaId> for Pallet<T> {
-		fn get() -> ParaId {
+	impl<T: Config> Get<AllyId> for Pallet<T> {
+		fn get() -> AllyId {
 			Self::allychain_id()
 		}
 	}
@@ -462,12 +462,12 @@ pub mod mock_msg_queue {
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn set_para_id(para_id: ParaId) {
+		pub fn set_para_id(para_id: AllyId) {
 			AllychainId::<T>::put(para_id);
 		}
 
 		fn handle_xcmp_message(
-			sender: ParaId,
+			sender: AllyId,
 			_sent_at: RelayBlockNumber,
 			xcm: VersionedXcm<T::Call>,
 			max_weight: Weight,
@@ -495,7 +495,7 @@ pub mod mock_msg_queue {
 	}
 
 	impl<T: Config> XcmpMessageHandler for Pallet<T> {
-		fn handle_xcmp_messages<'a, I: Iterator<Item = (ParaId, RelayBlockNumber, &'a [u8])>>(
+		fn handle_xcmp_messages<'a, I: Iterator<Item = (AllyId, RelayBlockNumber, &'a [u8])>>(
 			iter: I,
 			max_weight: Weight,
 		) -> Weight {
@@ -621,7 +621,7 @@ impl pallet_xcm::Config for Runtime {
 }
 
 parameter_types! {
-	pub StatemineParaId: u32 = 4;
+	pub StatemineAllyId: u32 = 4;
 	pub StatemineAssetPalletInstance: u8 = 5;
 }
 
@@ -645,7 +645,7 @@ impl From<MultiLocation> for AssetType {
 			MultiLocation {
 				parents: 1,
 				interior: X2(Allychain(id), GeneralIndex(index)),
-			} if id == StatemineParaId::get() => Self::Xcm(MultiLocation {
+			} if id == StatemineAllyId::get() => Self::Xcm(MultiLocation {
 				parents: 1,
 				interior: X3(
 					Allychain(id),

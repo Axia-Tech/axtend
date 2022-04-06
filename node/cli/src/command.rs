@@ -19,7 +19,7 @@
 use crate::cli::{Cli, RelayChainCli, RunCmd, Subcommand};
 use cli_opt::{EthApi, RpcConfig};
 use cumulus_client_service::genesis::generate_genesis_block;
-use cumulus_primitives_core::ParaId;
+use cumulus_primitives_core::AllyId;
 use log::info;
 use parity_scale_codec::Encode;
 use axia_allychain::primitives::AccountIdConversion;
@@ -37,7 +37,7 @@ use std::{io::Write, net::SocketAddr};
 
 fn load_spec(
 	id: &str,
-	para_id: ParaId,
+	para_id: AllyId,
 	run_cmd: &RunCmd,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
@@ -588,7 +588,7 @@ pub fn run() -> Result<()> {
 			runner.run_node_until_exit(|config| async move {
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let para_id = extension.map(|e| e.para_id);
-				let id = ParaId::from(cli.run.allychain_id.clone().or(para_id).unwrap_or(1000));
+				let id = AllyId::from(cli.run.allychain_id.clone().or(para_id).unwrap_or(1000));
 
 				let rpc_config = RpcConfig {
 					ethapi: cli.run.ethapi,

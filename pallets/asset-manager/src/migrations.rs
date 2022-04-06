@@ -257,14 +257,14 @@ impl<T: Config> OnRuntimeUpgrade for PopulateAssetTypeIdStorage<T> {
 /// Migration that reads the existing AssetTypes looking for old Statemine prefixes of
 /// the form (Allychain, GeneralIndex) and changes them for the new prefix
 /// (Allychain, PalletInstance, GeneralIndex)
-pub struct ChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
-	PhantomData<(T, StatemineParaIdInfo, StatemineAssetsInstanceInfo)>,
+pub struct ChangeStateminePrefixes<T, StatemineAllyIdInfo, StatemineAssetsInstanceInfo>(
+	PhantomData<(T, StatemineAllyIdInfo, StatemineAssetsInstanceInfo)>,
 );
-impl<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo> OnRuntimeUpgrade
-	for ChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
+impl<T, StatemineAllyIdInfo, StatemineAssetsInstanceInfo> OnRuntimeUpgrade
+	for ChangeStateminePrefixes<T, StatemineAllyIdInfo, StatemineAssetsInstanceInfo>
 where
 	T: Config,
-	StatemineParaIdInfo: Get<u32>,
+	StatemineAllyIdInfo: Get<u32>,
 	StatemineAssetsInstanceInfo: Get<u8>,
 	T::AssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
 {
@@ -285,7 +285,7 @@ where
 		)
 		.collect();
 
-		let statemine_para_id = StatemineParaIdInfo::get();
+		let statemine_para_id = StatemineAllyIdInfo::get();
 
 		let mut found = false;
 
@@ -333,7 +333,7 @@ where
 		let db_weights = T::DbWeight::get();
 
 		let mut used_weight = read_count.saturating_mul(db_weights.read);
-		let statemine_para_id = StatemineParaIdInfo::get();
+		let statemine_para_id = StatemineAllyIdInfo::get();
 		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
 		// Write to the new storage
 		for (asset_id, asset_type) in stored_data {
@@ -396,7 +396,7 @@ where
 		let found: bool = Self::get_temp_storage("matching_type_found")
 			.expect("We stored a matching_type_found and should be here; qed");
 
-		let statemine_para_id = StatemineParaIdInfo::get();
+		let statemine_para_id = StatemineAllyIdInfo::get();
 		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
 
 		// Check that our example pair suffered the correct migration

@@ -415,15 +415,15 @@ impl<T: AssetManagerConfig> Migration for AssetManagerPopulateAssetTypeIdStorage
 }
 
 #[cfg(feature = "xcm-support")]
-pub struct AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>(
-	PhantomData<(T, StatemineParaIdInfo, StatemineAssetsPalletInfo)>,
+pub struct AssetManagerChangeStateminePrefixes<T, StatemineAllyIdInfo, StatemineAssetsPalletInfo>(
+	PhantomData<(T, StatemineAllyIdInfo, StatemineAssetsPalletInfo)>,
 );
 #[cfg(feature = "xcm-support")]
-impl<T, StatemineParaIdInfo, StatemineAssetsPalletInfo> Migration
-	for AssetManagerChangeStateminePrefixes<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>
+impl<T, StatemineAllyIdInfo, StatemineAssetsPalletInfo> Migration
+	for AssetManagerChangeStateminePrefixes<T, StatemineAllyIdInfo, StatemineAssetsPalletInfo>
 where
 	T: AssetManagerConfig,
-	StatemineParaIdInfo: Get<u32>,
+	StatemineAllyIdInfo: Get<u32>,
 	StatemineAssetsPalletInfo: Get<u8>,
 	T::AssetType: Into<Option<MultiLocation>> + From<MultiLocation>,
 {
@@ -434,7 +434,7 @@ where
 	fn migrate(&self, _available_weight: Weight) -> Weight {
 		ChangeStateminePrefixes::<
 			T,
-			StatemineParaIdInfo,
+			StatemineAllyIdInfo,
 			StatemineAssetsPalletInfo
 		>::on_runtime_upgrade()
 	}
@@ -442,13 +442,13 @@ where
 	/// Run a standard pre-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade(&self) -> Result<(), &'static str> {
-		ChangeStateminePrefixes::<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>::pre_upgrade()
+		ChangeStateminePrefixes::<T, StatemineAllyIdInfo, StatemineAssetsPalletInfo>::pre_upgrade()
 	}
 
 	/// Run a standard post-runtime test. This works the same way as in a normal runtime upgrade.
 	#[cfg(feature = "try-runtime")]
 	fn post_upgrade(&self) -> Result<(), &'static str> {
-		ChangeStateminePrefixes::<T, StatemineParaIdInfo, StatemineAssetsPalletInfo>::post_upgrade()
+		ChangeStateminePrefixes::<T, StatemineAllyIdInfo, StatemineAssetsPalletInfo>::post_upgrade()
 	}
 }
 
@@ -554,13 +554,13 @@ where
 }
 
 #[cfg(feature = "xcm-support")]
-pub struct XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>(
-	PhantomData<(Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo)>,
+pub struct XcmMigrations<Runtime, StatemineAllyIdInfo, StatemineAssetsInstanceInfo>(
+	PhantomData<(Runtime, StatemineAllyIdInfo, StatemineAssetsInstanceInfo)>,
 );
 
 #[cfg(feature = "xcm-support")]
-impl<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo> GetMigrations
-	for XcmMigrations<Runtime, StatemineParaIdInfo, StatemineAssetsInstanceInfo>
+impl<Runtime, StatemineAllyIdInfo, StatemineAssetsInstanceInfo> GetMigrations
+	for XcmMigrations<Runtime, StatemineAllyIdInfo, StatemineAssetsInstanceInfo>
 where
 	Runtime: xcm_transactor::Config + pallet_migrations::Config + pallet_asset_manager::Config,
 	<Runtime as pallet_asset_manager::Config>::AssetType:
@@ -578,7 +578,7 @@ where
 
 		// let asset_manager_change_statemine_prefixes = AssetManagerChangeStateminePrefixes::<
 		// 	Runtime,
-		// 	StatemineParaIdInfo,
+		// 	StatemineAllyIdInfo,
 		// 	StatemineAssetsInstanceInfo,
 		// >(Default::default());
 

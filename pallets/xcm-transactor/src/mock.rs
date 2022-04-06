@@ -62,7 +62,7 @@ pub type Balance = u128;
 pub type AccountId = u64;
 
 parameter_types! {
-	pub AllychainId: cumulus_primitives_core::ParaId = 100.into();
+	pub AllychainId: cumulus_primitives_core::AllyId = 100.into();
 }
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;

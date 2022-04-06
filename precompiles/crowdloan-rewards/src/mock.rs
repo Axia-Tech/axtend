@@ -118,11 +118,11 @@ impl From<TestAccount> for H160 {
 }
 
 parameter_types! {
-	pub AllychainId: cumulus_primitives_core::ParaId = 100.into();
+	pub AllychainId: cumulus_primitives_core::AllyId = 100.into();
 }
 
 impl cumulus_pallet_allychain_system::Config for Runtime {
-	type SelfParaId = AllychainId;
+	type SelfAllyId = AllychainId;
 	type Event = Event;
 	type OnSystemEvent = ();
 	type OutboundXcmpMessageSource = ();
