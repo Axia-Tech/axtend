@@ -100,6 +100,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 
 /// Generate a default spec for the allychain service. Use this as a starting point when launching
 /// a custom chain.
+// axia:axia-local
 pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 	ChainSpec::from_genesis(
 		// TODO Apps depends on this string to determine whether the chain is an ethereum compat
