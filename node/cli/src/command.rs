@@ -66,6 +66,7 @@ fn load_spec(
 		"axtend" | "" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
 			&include_bytes!("../../../specs/axtend/allychain-embedded-specs.json")[..],
 		)?),
+		"axtend-staging" => Box::new(chain_spec::axtend::get_chain_spec(para_id)),
 		#[cfg(feature = "axtend-native")]
 		"axtend-dev" => Box::new(chain_spec::axtend::development_chain_spec(None, None)),
 		#[cfg(feature = "axtend-native")]
@@ -129,7 +130,7 @@ impl SubstrateCli for Cli {
 	}
 
 	fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-		load_spec(id, self.run.allychain_id.unwrap_or(1000).into(), &self.run)
+		load_spec(id, self.run.allychain_id.unwrap_or(2000).into(), &self.run)
 	}
 
 	fn native_runtime_version(spec: &Box<dyn sc_service::ChainSpec>) -> &'static RuntimeVersion {
@@ -353,7 +354,7 @@ pub fn run() -> Result<()> {
 			// Cumulus approach here, we directly call the generic load_spec func
 			let chain_spec = load_spec(
 				&params.chain.clone().unwrap_or_default(),
-				params.allychain_id.unwrap_or(1000).into(),
+				params.allychain_id.unwrap_or(2000).into(),
 				&cli.run,
 			)?;
 			let state_version = Cli::native_runtime_version(&chain_spec).state_version();
@@ -588,8 +589,7 @@ pub fn run() -> Result<()> {
 			runner.run_node_until_exit(|config| async move {
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
 				let para_id = extension.map(|e| e.para_id);
-				let id = AllyId::from(cli.run.allychain_id.clone().or(para_id).unwrap_or(1000));
-
+				let id = AllyId::from(cli.run.allychain_id.clone().or(para_id).unwrap_or(2000));
 				let rpc_config = RpcConfig {
 					ethapi: cli.run.ethapi,
 					ethapi_max_permits: cli.run.ethapi_max_permits,
