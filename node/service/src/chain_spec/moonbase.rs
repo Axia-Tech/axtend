@@ -21,7 +21,7 @@
 
 #[cfg(test)]
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
-use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
+use crate::chain_spec::{generate_accounts, get_from_seed, Extensions, my_seed};
 use cumulus_primitives_core::ParaId;
 use hex_literal::hex;
 use moonbase_runtime::{
@@ -102,6 +102,8 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 	)
 }
 
+const NEMO: &str = "panda dose welcome ostrich brief pull lawn table arrest worth ranch faculty";
+
 /// Generate a default spec for the allychain service. Use this as a starting point when launching
 /// a custom chain.
 pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
@@ -132,13 +134,13 @@ pub fn get_chain_spec(para_id: ParaId) -> ChainSpec {
 					// Alice -> Alith
 					(
 						AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-						get_from_seed::<NimbusId>("Alice"),
+						my_seed::<NimbusId>(NEMO, "Sankar", "stash"),
 						1_000 * UNIT,
 					),
 					// Bob -> Baltithar
 					(
 						AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
-						get_from_seed::<NimbusId>("Bob"),
+						my_seed::<NimbusId>(NEMO, "Arun", "stash"),
 						1_000 * UNIT,
 					),
 				],

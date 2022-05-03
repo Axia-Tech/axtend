@@ -149,3 +149,10 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
 		.expect("static values are valid; qed")
 		.public()
 }
+
+/// Helper function to generate a crypto pair from seed
+pub fn my_seed<TPublic: Public>(m: &str, n: &str, p: &str) -> <TPublic::Pair as Pair>::Public {
+	TPublic::Pair::from_string(&format!("{}//{}//{}", m, n, p), None)
+		.expect("static values are valid; qed")
+		.public()
+}
