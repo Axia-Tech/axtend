@@ -403,8 +403,8 @@ pub mod mock_msg_queue {
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn set_para_id(para_id: AllyId) {
-			AllychainId::<T>::put(para_id);
+		pub fn set_ally_id(ally_id: AllyId) {
+			AllychainId::<T>::put(ally_id);
 		}
 
 		fn handle_xcmp_message(

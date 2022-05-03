@@ -37,7 +37,7 @@ use std::{io::Write, net::SocketAddr};
 
 fn load_spec(
 	id: &str,
-	para_id: AllyId,
+	ally_id: AllyId,
 	run_cmd: &RunCmd,
 ) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
 	Ok(match id {
@@ -46,13 +46,13 @@ fn load_spec(
 			&include_bytes!("../../../specs/alphanet/allychain-embedded-specs-v8.json")[..],
 		)?),
 		#[cfg(feature = "moonbase-native")]
-		"moonbase-local" => Box::new(chain_spec::moonbase::get_chain_spec(para_id)),
+		"moonbase-local" => Box::new(chain_spec::moonbase::get_chain_spec(ally_id)),
 		#[cfg(feature = "moonbase-native")]
 		"moonbase-dev" | "dev" | "development" => {
 			Box::new(chain_spec::moonbase::development_chain_spec(None, None))
 		}
 		#[cfg(all(feature = "test-spec", feature = "axtend-native"))]
-		"staking" => Box::new(chain_spec::test_spec::staking_spec(para_id)),
+		"staking" => Box::new(chain_spec::test_spec::staking_spec(ally_id)),
 		// Moonriver networks
 		"moonriver" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
 			&include_bytes!("../../../specs/moonriver/allychain-embedded-specs.json")[..],
@@ -60,17 +60,17 @@ fn load_spec(
 		#[cfg(feature = "moonriver-native")]
 		"moonriver-dev" => Box::new(chain_spec::moonriver::development_chain_spec(None, None)),
 		#[cfg(feature = "moonriver-native")]
-		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(para_id)),
+		"moonriver-local" => Box::new(chain_spec::moonriver::get_chain_spec(ally_id)),
 
 		// Axtend networks
 		"axtend" | "" => Box::new(chain_spec::RawChainSpec::from_json_bytes(
 			&include_bytes!("../../../specs/axtend/allychain-embedded-specs.json")[..],
 		)?),
-		"axtend-staging" => Box::new(chain_spec::axtend::get_chain_spec(para_id)),
+		"axtend-staging" => Box::new(chain_spec::axtend::get_chain_spec(ally_id)),
 		#[cfg(feature = "axtend-native")]
 		"axtend-dev" => Box::new(chain_spec::axtend::development_chain_spec(None, None)),
 		#[cfg(feature = "axtend-native")]
-		"axtend-local" => Box::new(chain_spec::axtend::get_chain_spec(para_id)),
+		"axtend-local" => Box::new(chain_spec::axtend::get_chain_spec(ally_id)),
 
 		// Specs provided as json specify which runtime to use in their file name. For example,
 		// `axtend-custom.json` uses the axtend runtime.
@@ -588,8 +588,8 @@ pub fn run() -> Result<()> {
 			let runner = cli.create_runner(&(*cli.run).normalize())?;
 			runner.run_node_until_exit(|config| async move {
 				let extension = chain_spec::Extensions::try_get(&*config.chain_spec);
-				let para_id = extension.map(|e| e.para_id);
-				let id = AllyId::from(cli.run.allychain_id.clone().or(para_id).unwrap_or(2000));
+				let ally_id = extension.map(|e| e.ally_id);
+				let id = AllyId::from(cli.run.allychain_id.clone().or(ally_id).unwrap_or(2000));
 				let rpc_config = RpcConfig {
 					ethapi: cli.run.ethapi,
 					ethapi_max_permits: cli.run.ethapi_max_permits,

@@ -71,7 +71,7 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 				vec![],
 				accounts.clone(),
 				3_000_000 * MOVR,
-				Default::default(), // para_id
+				Default::default(), // ally_id
 				1281,               //ChainId
 			)
 		},
@@ -93,14 +93,14 @@ pub fn development_chain_spec(mnemonic: Option<String>, num_accounts: Option<u32
 		// Extensions
 		Extensions {
 			relay_chain: "dev-service".into(),
-			para_id: Default::default(),
+			ally_id: Default::default(),
 		},
 	)
 }
 
 /// Generate a default spec for the allychain service. Use this as a starting point when launching
 /// a custom chain.
-pub fn get_chain_spec(para_id: AllyId) -> ChainSpec {
+pub fn get_chain_spec(ally_id: AllyId) -> ChainSpec {
 	ChainSpec::from_genesis(
 		// TODO Apps depends on this string to determine whether the chain is an ethereum compat
 		// or not. We should decide the proper strings, and update Apps accordingly.
@@ -143,7 +143,7 @@ pub fn get_chain_spec(para_id: AllyId) -> ChainSpec {
 					AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")),
 				],
 				3_000_000 * MOVR,
-				para_id,
+				ally_id,
 				1280, //ChainId
 			)
 		},
@@ -165,7 +165,7 @@ pub fn get_chain_spec(para_id: AllyId) -> ChainSpec {
 		// Extensions
 		Extensions {
 			relay_chain: "axctest-local".into(),
-			para_id: para_id.into(),
+			ally_id: ally_id.into(),
 		},
 	)
 }
@@ -204,7 +204,7 @@ pub fn testnet_genesis(
 	delegations: Vec<(AccountId, AccountId, Balance)>,
 	endowed_accounts: Vec<AccountId>,
 	crowdloan_fund_pot: Balance,
-	para_id: AllyId,
+	ally_id: AllyId,
 	chain_id: u64,
 ) -> GenesisConfig {
 	// This is the simplest bytecode to revert without returning any data.
@@ -230,7 +230,7 @@ pub fn testnet_genesis(
 			funded_amount: crowdloan_fund_pot,
 		},
 		allychain_info: AllychainInfoConfig {
-			allychain_id: para_id,
+			allychain_id: ally_id,
 		},
 		ethereum_chain_id: EthereumChainIdConfig { chain_id },
 		evm: EVMConfig {

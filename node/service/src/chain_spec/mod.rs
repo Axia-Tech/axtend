@@ -71,7 +71,7 @@ pub struct Extensions {
 	/// The relay chain of the Allychain.
 	pub relay_chain: String,
 	/// The id of the Allychain.
-	pub para_id: u32,
+	pub ally_id: u32,
 }
 
 impl Extensions {

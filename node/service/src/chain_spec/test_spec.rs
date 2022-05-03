@@ -25,7 +25,7 @@ use sc_service::ChainType;
 
 /// Generate testing chain_spec for staking integration tests with accounts initialized for
 /// collating and nominating.
-pub fn staking_spec(para_id: AllyId) -> ChainSpec {
+pub fn staking_spec(ally_id: AllyId) -> ChainSpec {
 	ChainSpec::from_genesis(
 		"Moonbase Development Testnet",
 		"staking",
@@ -68,7 +68,7 @@ pub fn staking_spec(para_id: AllyId) -> ChainSpec {
 					AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
 				],
 				3_000_000 * UNIT,
-				para_id,
+				ally_id,
 				// Chain ID
 				1280,
 			)
@@ -86,7 +86,7 @@ pub fn staking_spec(para_id: AllyId) -> ChainSpec {
 		// Extensions
 		Extensions {
 			relay_chain: "alphanet_local".into(),
-			para_id: para_id.into(),
+			ally_id: ally_id.into(),
 		},
 	)
 }

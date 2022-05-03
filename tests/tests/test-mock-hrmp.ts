@@ -14,8 +14,8 @@ import { AllyId, XcmpMessageFormat } from "@axia/types/interfaces";
 const FOREIGN_TOKEN = 1_000_000_000_000n;
 
 const palletId = "0x6D6f646c617373746d6E67720000000000000000";
-const foreign_para_id = 2000;
-const statemint_para_id = 1001;
+const foreign_ally_id = 2000;
+const statemint_ally_id = 1001;
 const statemint_assets_pallet_instance = 50;
 
 const assetMetadata = {
@@ -25,13 +25,13 @@ const assetMetadata = {
   isFrozen: false,
 };
 
-const sourceLocation = { XCM: { parents: 1, interior: { X1: { Allychain: foreign_para_id } } } };
+const sourceLocation = { XCM: { parents: 1, interior: { X1: { Allychain: foreign_ally_id } } } };
 const statemintLocation = {
   XCM: {
     parents: 1,
     interior: {
       X3: [
-        { Allychain: statemint_para_id },
+        { Allychain: statemint_ally_id },
         { PalletInstance: statemint_assets_pallet_instance },
         { GeneralIndex: 0 },
       ],
@@ -44,7 +44,7 @@ const statemintLocationAssetOne = {
     parents: 1,
     interior: {
       X3: [
-        { Allychain: statemint_para_id },
+        { Allychain: statemint_ally_id },
         { PalletInstance: statemint_assets_pallet_instance },
         { GeneralIndex: 1 },
       ],
@@ -100,7 +100,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
   it("Should receive a horizontal transfer of 10 FOREIGNs to Alith", async function () {
     // Send RPC call to inject XCM message
     // You can provide a message, but if you don't a horizontal transfer is the default
-    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreign_para_id, []]);
+    await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [foreign_ally_id, []]);
 
     // Create a block in which the XCM will be executed
     await context.createBlock();
@@ -178,7 +178,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: 1,
-                  interior: { X2: [{ Allychain: statemint_para_id }, { GeneralIndex: 0 }] },
+                  interior: { X2: [{ Allychain: statemint_ally_id }, { GeneralIndex: 0 }] },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -192,7 +192,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: new BN(1),
-                  interior: { X2: [{ Allychain: statemint_para_id }, { GeneralIndex: 0 }] },
+                  interior: { X2: [{ Allychain: statemint_ally_id }, { GeneralIndex: 0 }] },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -225,7 +225,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
     // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
     await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
-      statemint_para_id,
+      statemint_ally_id,
       totalMessage,
     ]);
 
@@ -307,7 +307,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
                   parents: 1,
                   interior: {
                     X3: [
-                      { Allychain: statemint_para_id },
+                      { Allychain: statemint_ally_id },
                       { PalletInstance: statemint_assets_pallet_instance },
                       { GeneralIndex: 0 },
                     ],
@@ -327,7 +327,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
                   parents: new BN(1),
                   interior: {
                     X3: [
-                      { Allychain: statemint_para_id },
+                      { Allychain: statemint_ally_id },
                       { PalletInstance: statemint_assets_pallet_instance },
                       { GeneralIndex: 0 },
                     ],
@@ -364,7 +364,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
     // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
     await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
-      statemint_para_id,
+      statemint_ally_id,
       totalMessage,
     ]);
 
@@ -725,7 +725,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: 1,
-                  interior: { X2: [{ Allychain: statemint_para_id }, { GeneralIndex: 0 }] },
+                  interior: { X2: [{ Allychain: statemint_ally_id }, { GeneralIndex: 0 }] },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -734,7 +734,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: 1,
-                  interior: { X2: [{ Allychain: statemint_para_id }, { GeneralIndex: 1 }] },
+                  interior: { X2: [{ Allychain: statemint_ally_id }, { GeneralIndex: 1 }] },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -748,7 +748,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: new BN(1),
-                  interior: { X2: [{ Allychain: statemint_para_id }, { GeneralIndex: 1 }] },
+                  interior: { X2: [{ Allychain: statemint_ally_id }, { GeneralIndex: 1 }] },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -782,7 +782,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
     // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
     await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
-      statemint_para_id,
+      statemint_ally_id,
       totalMessage,
     ]);
 
@@ -848,7 +848,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: 1,
-                  interior: { X2: [{ Allychain: statemint_para_id }, { GeneralIndex: 0 }] },
+                  interior: { X2: [{ Allychain: statemint_ally_id }, { GeneralIndex: 0 }] },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -862,7 +862,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
               id: {
                 Concrete: {
                   parents: new BN(1),
-                  interior: { X2: [{ Allychain: statemint_para_id }, { GeneralIndex: 0 }] },
+                  interior: { X2: [{ Allychain: statemint_ally_id }, { GeneralIndex: 0 }] },
                 },
               },
               fun: { Fungible: new BN(10000000000000) },
@@ -895,7 +895,7 @@ describeDevAxtend("Mock XCM - receive horizontal transfer", (context) => {
     // Send RPC call to inject XCM message
     // We will set a specific message knowing that it should mint the statemint asset
     await customWeb3Request(context.web3, "xcm_injectHrmpMessage", [
-      statemint_para_id,
+      statemint_ally_id,
       totalMessage,
     ]);
 

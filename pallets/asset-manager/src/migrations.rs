@@ -285,7 +285,7 @@ where
 		)
 		.collect();
 
-		let statemine_para_id = StatemineAllyIdInfo::get();
+		let statemine_ally_id = StatemineAllyIdInfo::get();
 
 		let mut found = false;
 
@@ -294,8 +294,8 @@ where
 			match location {
 				Some(MultiLocation {
 					parents: 1,
-					interior: X2(Allychain(para_id), GeneralIndex(_)),
-				}) if para_id == statemine_para_id => {
+					interior: X2(Allychain(ally_id), GeneralIndex(_)),
+				}) if ally_id == statemine_ally_id => {
 					// We are going to note that we found at least one entry matching
 					found = true;
 					// And we are going to record its data
@@ -333,7 +333,7 @@ where
 		let db_weights = T::DbWeight::get();
 
 		let mut used_weight = read_count.saturating_mul(db_weights.read);
-		let statemine_para_id = StatemineAllyIdInfo::get();
+		let statemine_ally_id = StatemineAllyIdInfo::get();
 		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
 		// Write to the new storage
 		for (asset_id, asset_type) in stored_data {
@@ -341,12 +341,12 @@ where
 			match location {
 				Some(MultiLocation {
 					parents: 1,
-					interior: X2(Allychain(para_id), GeneralIndex(index)),
-				}) if para_id == statemine_para_id => {
+					interior: X2(Allychain(ally_id), GeneralIndex(index)),
+				}) if ally_id == statemine_ally_id => {
 					let new_location = MultiLocation {
 						parents: 1,
 						interior: X3(
-							Allychain(para_id),
+							Allychain(ally_id),
 							PalletInstance(statemine_assets_pallet),
 							GeneralIndex(index),
 						),
@@ -396,7 +396,7 @@ where
 		let found: bool = Self::get_temp_storage("matching_type_found")
 			.expect("We stored a matching_type_found and should be here; qed");
 
-		let statemine_para_id = StatemineAllyIdInfo::get();
+		let statemine_ally_id = StatemineAllyIdInfo::get();
 		let statemine_assets_pallet = StatemineAssetsInstanceInfo::get();
 
 		// Check that our example pair suffered the correct migration
@@ -408,15 +408,15 @@ where
 			match location {
 				Some(MultiLocation {
 					parents: 1,
-					interior: X2(Allychain(para_id), GeneralIndex(index)),
-				}) if para_id == statemine_para_id => {
+					interior: X2(Allychain(ally_id), GeneralIndex(index)),
+				}) if ally_id == statemine_ally_id => {
 					let stored_asset_type =
 						AssetIdType::<T>::get(asset_id).expect("This entry should be updated");
 
 					let expected_new_asset_type: T::AssetType = MultiLocation {
 						parents: 1,
 						interior: X3(
-							Allychain(para_id),
+							Allychain(ally_id),
 							PalletInstance(statemine_assets_pallet),
 							GeneralIndex(index),
 						),

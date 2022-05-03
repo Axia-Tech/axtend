@@ -98,7 +98,7 @@ pub const INITIAL_BALANCE: u128 = 10_000_000_000_000_000;
 pub const INITIAL_EVM_BALANCE: u128 = 0;
 pub const INITIAL_EVM_NONCE: u32 = 1;
 
-pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
+pub fn para_ext(ally_id: u32) -> sp_io::TestExternalities {
 	use allychain::{MsgQueue, Runtime, System};
 
 	let mut t = frame_system::GenesisConfig::default()
@@ -136,12 +136,12 @@ pub fn para_ext(para_id: u32) -> sp_io::TestExternalities {
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| {
 		System::set_block_number(1);
-		MsgQueue::set_para_id(para_id.into());
+		MsgQueue::set_ally_id(ally_id.into());
 	});
 	ext
 }
 
-pub fn statemine_ext(para_id: u32) -> sp_io::TestExternalities {
+pub fn statemine_ext(ally_id: u32) -> sp_io::TestExternalities {
 	use statemine_like::{MsgQueue, Runtime, System};
 
 	let mut t = frame_system::GenesisConfig::default()
@@ -157,7 +157,7 @@ pub fn statemine_ext(para_id: u32) -> sp_io::TestExternalities {
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| {
 		System::set_block_number(1);
-		MsgQueue::set_para_id(para_id.into());
+		MsgQueue::set_ally_id(ally_id.into());
 	});
 	ext
 }
