@@ -21,7 +21,7 @@
 
 #[cfg(test)]
 use crate::chain_spec::{derive_bip44_pairs_from_mnemonic, get_account_id_from_pair};
-use crate::chain_spec::{generate_accounts, get_from_seed, Extensions};
+use crate::chain_spec::{generate_accounts, get_from_seed, my_seed, Extensions};
 use cumulus_primitives_core::AllyId;
 use hex_literal::hex;
 use moonbase_runtime::{
@@ -29,7 +29,7 @@ use moonbase_runtime::{
 	BaseFeeConfig, CouncilCollectiveConfig, CrowdloanRewardsConfig, DemocracyConfig, EVMConfig,
 	EthereumChainIdConfig, EthereumConfig, GenesisAccount, GenesisConfig, InflationInfo,
 	MaintenanceModeConfig, AllychainInfoConfig, AllychainStakingConfig, AxiaXcmConfig,
-	Precompiles, Range, SudoConfig, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
+	Precompiles, Range, SystemConfig, TechCommitteeCollectiveConfig, WASM_BINARY,
 };
 use nimbus_primitives::NimbusId;
 use sc_service::ChainType;
@@ -206,7 +206,7 @@ pub fn axtend_inflation_config() -> InflationInfo<Balance> {
 }
 
 pub fn testnet_genesis(
-	root_key: AccountId,
+	_root_key: AccountId,
 	council_members: Vec<AccountId>,
 	tech_comittee_members: Vec<AccountId>,
 	candidates: Vec<(AccountId, NimbusId, Balance)>,
@@ -238,9 +238,9 @@ pub fn testnet_genesis(
 		crowdloan_rewards: CrowdloanRewardsConfig {
 			funded_amount: crowdloan_fund_pot,
 		},
-		sudo: SudoConfig {
-			key: Some(root_key),
-		},
+		// sudo: SudoConfig {
+		// 	key: Some(root_key),
+		// },
 		allychain_info: AllychainInfoConfig {
 			allychain_id: ally_id,
 		},
